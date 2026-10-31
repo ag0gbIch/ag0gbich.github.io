@@ -1,0 +1,1055 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="color-scheme" content="dark">
+<meta name="theme-color" content="#0b0f14">
+<title>Умный день — распорядок под экзамены</title>
+<style>
+  :root{
+    --bg:#0a0e13; --card:#101720; --card2:#0c131b; --line:#1d2833; --line2:#2b3a48;
+    --txt:#e8eff6; --muted:#8b9dad; --dim:#5d7082;
+    --acc:#4ade80; --acc2:#60a5fa; --warn:#fbbf24; --danger:#f87171; --violet:#a78bfa;
+  }
+  *{box-sizing:border-box}
+  body{
+    margin:0;background:var(--bg);color:var(--txt);
+    font:15px/1.5 -apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Arial,sans-serif;
+    background-image:radial-gradient(800px 420px at 10% -10%, rgba(74,222,128,.08), transparent 60%),
+                     radial-gradient(700px 420px at 95% 0%, rgba(96,165,250,.07), transparent 60%);
+    background-repeat:no-repeat;
+    padding-bottom:calc(24px + env(safe-area-inset-bottom));
+  }
+  .wrap{max-width:760px;margin:0 auto;padding:0 16px}
+  header{padding:20px 0 6px}
+  .date{font-size:12px;letter-spacing:.14em;text-transform:uppercase;color:var(--dim)}
+  h1{margin:4px 0 0;font-size:22px;letter-spacing:-.01em}
+  .sub{color:var(--muted);font-size:13px;margin-top:4px}
+
+  .card{background:var(--card);border:1px solid var(--line);border-radius:16px;padding:16px}
+  .now{margin-top:14px;background:linear-gradient(180deg,#12202a,#0d1721);border-color:rgba(74,222,128,.25)}
+  .now-top{display:flex;justify-content:space-between;gap:12px;align-items:flex-start}
+  .now-label{font-size:10.5px;letter-spacing:.16em;text-transform:uppercase;color:var(--acc)}
+  .now-title{font-size:18px;font-weight:600;margin-top:4px;line-height:1.3}
+  .now-time{font-family:ui-monospace,Menlo,monospace;font-size:12px;color:var(--muted);margin-top:4px}
+  .now-left{font-family:ui-monospace,Menlo,monospace;font-size:26px;color:var(--txt);text-align:right;white-space:nowrap}
+  .now-left small{display:block;font-size:10px;color:var(--dim);letter-spacing:.1em;text-transform:uppercase}
+  .btn{
+    appearance:none;font:inherit;font-size:14px;padding:11px 16px;border-radius:11px;cursor:pointer;
+    border:1px solid var(--line2);background:var(--card2);color:var(--txt);transition:.15s;
+  }
+  .btn:hover{border-color:var(--line2);background:#14202b}
+  .btn.primary{background:var(--acc);border-color:var(--acc);color:#04220f;font-weight:650}
+  .btn.primary:hover{background:#67e895}
+  .btn.wide{width:100%;margin-top:12px}
+  .btn.ghost{background:transparent}
+  .btn.small{font-size:12.5px;padding:8px 12px;border-radius:9px}
+
+  .tabs{display:flex;gap:6px;margin:18px 0 12px;overflow-x:auto}
+  .tab{appearance:none;background:transparent;border:1px solid transparent;color:var(--muted);font:inherit;font-size:13.5px;padding:8px 14px;border-radius:10px;cursor:pointer;white-space:nowrap}
+  .tab.active{color:var(--acc);background:rgba(74,222,128,.1);border-color:rgba(74,222,128,.25)}
+  .hidden{display:none!important}
+
+  .timeline{display:flex;flex-direction:column;gap:2px}
+  .row{display:flex;gap:12px;align-items:stretch;padding:2px 0}
+  .time{flex:none;width:52px;font-family:ui-monospace,Menlo,monospace;font-size:12px;color:var(--dim);padding-top:14px}
+  .block{
+    flex:1;display:flex;align-items:center;gap:12px;padding:12px 14px;border-radius:12px;
+    background:var(--card);border:1px solid var(--line);min-width:0;
+  }
+  .block.study{border-color:rgba(96,165,250,.22)}
+  .block.repeat{border-color:rgba(167,139,250,.22)}
+  .block.school{background:#0d141c}
+  .block.done{opacity:.55}
+  .block.done .b-title{text-decoration:line-through}
+  .block.current{border-color:rgba(74,222,128,.5);box-shadow:0 0 0 1px rgba(74,222,128,.15)}
+  .block.missed{border-color:rgba(248,113,113,.28);opacity:.7}
+  .b-main{flex:1;min-width:0}
+  .b-title{font-size:14px;font-weight:600;line-height:1.3}
+  .b-meta{font-size:11.5px;color:var(--dim);margin-top:2px}
+  .b-kind{flex:none;font-size:10px;letter-spacing:.08em;text-transform:uppercase;color:var(--dim)}
+
+  .stat-grid{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-top:12px}
+  .stat{background:var(--card);border:1px solid var(--line);border-radius:12px;padding:12px 14px}
+  .stat b{display:block;font-size:20px;font-family:ui-monospace,Menlo,monospace;margin-top:2px}
+  .stat span{font-size:10.5px;letter-spacing:.1em;text-transform:uppercase;color:var(--dim)}
+  .bars{margin-top:16px;display:flex;flex-direction:column;gap:10px}
+  .bar-row{display:flex;flex-direction:column;gap:4px}
+  .bar-top{display:flex;justify-content:space-between;font-size:12.5px}
+  .bar-top em{font-style:normal;color:var(--dim);font-family:ui-monospace,Menlo,monospace}
+  .bar{height:7px;background:#17222d;border-radius:999px;overflow:hidden}
+  .bar i{display:block;height:100%;background:linear-gradient(90deg,var(--acc2),var(--acc));border-radius:999px}
+
+  label.f{display:block;font-size:11px;letter-spacing:.1em;text-transform:uppercase;color:var(--dim);margin:14px 0 6px}
+  input[type=text],input[type=time],input[type=date],input[type=number]{
+    width:100%;padding:10px 12px;border-radius:10px;border:1px solid var(--line2);
+    background:var(--card2);color:var(--txt);font:inherit;font-size:14px;
+  }
+  input:focus{outline:none;border-color:var(--acc)}
+  .grid2{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+  .subj{display:flex;gap:8px;align-items:center;margin-bottom:8px}
+  .subj input[type=text]{flex:1}
+  .subj input[type=number]{width:74px;flex:none}
+  .subj .del{flex:none;background:none;border:0;color:var(--dim);font-size:18px;cursor:pointer;padding:4px 6px;border-radius:6px}
+  .subj .del:hover{color:var(--danger);background:rgba(248,113,113,.1)}
+
+  .block.cyber{border-color:rgba(74,222,128,.32);background:linear-gradient(180deg,#0f1e18,#0d1721)}
+  .block.gym{border-color:rgba(251,191,36,.3);background:linear-gradient(180deg,#1b1811,#0d1721)}
+  .cyber-box{border:1px solid var(--line);border-radius:12px;padding:12px 14px;background:var(--card2)}
+  .chk{display:flex;align-items:center;gap:9px;font-size:13.5px;color:var(--txt);cursor:pointer}
+  .chk input{width:16px;height:16px;accent-color:var(--acc)}
+  .days{display:flex;gap:6px;flex-wrap:wrap}
+  .daychip{appearance:none;font:inherit;font-size:12.5px;padding:7px 12px;border-radius:9px;cursor:pointer;border:1px solid var(--line2);background:var(--card);color:var(--muted);transition:.15s}
+  .daychip.on{border-color:rgba(74,222,128,.45);background:rgba(74,222,128,.12);color:var(--acc)}
+
+  .overlay{position:fixed;inset:0;background:rgba(6,9,12,.96);backdrop-filter:blur(6px);z-index:50;display:flex;align-items:center;justify-content:center;padding:20px}
+  .focus{width:100%;max-width:420px;text-align:center}
+  .focus .k{font-size:10.5px;letter-spacing:.16em;text-transform:uppercase;color:var(--acc)}
+  .focus h2{margin:8px 0 4px;font-size:20px;line-height:1.3}
+  .focus .timer{font-family:ui-monospace,Menlo,monospace;font-size:56px;letter-spacing:-.03em;margin:18px 0 6px}
+  .focus .hint{color:var(--muted);font-size:13.5px;line-height:1.5;margin:10px 0 0}
+  .focus .actions{display:flex;gap:10px;margin-top:22px}
+  .focus .actions .btn{flex:1}
+  .phone{display:inline-flex;align-items:center;gap:8px;margin-top:14px;padding:9px 14px;border-radius:999px;border:1px dashed rgba(251,191,36,.4);color:var(--warn);font-size:12.5px}
+
+  .toast{position:fixed;left:50%;bottom:calc(24px + env(safe-area-inset-bottom));transform:translate(-50%,14px);background:#16212c;border:1px solid var(--line2);padding:10px 16px;border-radius:11px;font-size:13px;opacity:0;pointer-events:none;transition:.2s;z-index:60}
+  .toast.show{opacity:1;transform:translate(-50%,0)}
+  .empty{color:var(--dim);font-size:13.5px;padding:8px 2px}
+  .note{color:var(--dim);font-size:12.5px;line-height:1.5;margin-top:10px}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <header>
+    <div class="date" id="dateLbl">—</div>
+    <h1>Умный день</h1>
+    <div class="sub" id="subLbl">—</div>
+  </header>
+
+  <section class="card now" id="nowCard">
+    <div class="now-top">
+      <div style="min-width:0">
+        <div class="now-label" id="nowLabel">сейчас</div>
+        <div class="now-title" id="nowTitle">—</div>
+        <div class="now-time" id="nowTime">—</div>
+      </div>
+      <div class="now-left" id="nowLeft">—<small id="nowLeftLbl">осталось</small></div>
+    </div>
+    <button class="btn primary wide" id="nowBtn">Начать</button>
+  </section>
+
+  <nav class="tabs">
+    <button class="tab active" data-tab="day">День</button>
+    <button class="tab" data-tab="stats">Статистика</button>
+    <button class="tab" data-tab="settings">Настройки</button>
+  </nav>
+
+  <section id="tab-day">
+    <div style="display:flex;gap:8px;margin-bottom:10px">
+      <button class="btn small ghost" id="rebuildBtn">Пересобрать день</button>
+      <button class="btn small ghost" id="addRepeatBtn">+ повторение</button>
+    </div>
+    <div class="timeline" id="timeline"></div>
+  </section>
+
+  <section id="tab-stats" class="hidden">
+    <div class="stat-grid">
+      <div class="stat"><span>Фокус за неделю</span><b id="stWeek">0 ч</b></div>
+      <div class="stat"><span>Блоков сделано</span><b id="stBlocks">0</b></div>
+      <div class="stat"><span>Серия дней</span><b id="stStreak">0</b></div>
+      <div class="stat"><span>До экзамена</span><b id="stExam">—</b></div>
+    </div>
+    <div class="card" style="margin-top:12px">
+      <div style="font-size:11px;letter-spacing:.12em;text-transform:uppercase;color:var(--dim)">Часы по предметам за неделю</div>
+      <div class="bars" id="bars"></div>
+      <p class="note">Цель — недельные часы из настроек. Полоса зелёная, когда цель выполнена.</p>
+    </div>
+  </section>
+
+  <section id="tab-settings" class="hidden">
+    <div class="card">
+      <div class="grid2">
+        <div><label class="f">Подъём</label><input type="time" id="setWake"></div>
+        <div><label class="f">Сон</label><input type="time" id="setSleep"></div>
+        <div><label class="f">Школа с</label><input type="time" id="setSchoolStart"></div>
+        <div><label class="f">Школа до</label><input type="time" id="setSchoolEnd"></div>
+      </div>
+      <label class="f">Дата экзамена</label>
+      <input type="date" id="setExam">
+
+      <label class="f">Предметы и цель, часов в неделю</label>
+      <div id="subjList"></div>
+      <button class="btn small" id="addSubj" style="margin-top:4px">+ предмет</button>
+
+      <label class="f">Кибербез</label>
+      <div class="cyber-box">
+        <label class="chk"><input type="checkbox" id="cyberOn"> Включить в расписание</label>
+        <div class="grid2" style="margin-top:10px">
+          <div><label class="f" style="margin-top:0">Часов в неделю</label><input type="number" id="cyberHours" min="1" max="20" step="1"></div>
+          <div><label class="f" style="margin-top:0">Старт плана</label><input type="date" id="cyberStart"></div>
+        </div>
+        <label class="f">Дни занятий</label>
+        <div class="days" id="cyberDays"></div>
+        <p class="note">Блок ставится в 19:00, сразу после прогулки. «Старт плана» нужен, чтобы показывать номер недели из 12-недельного плана.</p>
+      </div>
+
+      <label class="f">Спортзал</label>
+      <div class="cyber-box">
+        <label class="chk"><input type="checkbox" id="gymOn"> Хожу в зал</label>
+        <div class="grid2" style="margin-top:10px">
+          <div><label class="f" style="margin-top:0">Начало</label><input type="time" id="gymStart"></div>
+          <div><label class="f" style="margin-top:0">Длительность, мин</label><input type="number" id="gymDur" min="30" max="180" step="15"></div>
+        </div>
+        <label class="f">Дни</label>
+        <div class="days" id="gymDays"></div>
+        <p class="note">В дни зала ставится «Спортзал» и ужин после него, а учебных блоков на один меньше — иначе вечер не влезает.</p>
+      </div>
+
+      <button class="btn primary wide" id="saveBtn">Сохранить</button>
+      <button class="btn ghost wide" id="resetBtn">Сбросить всё</button>
+      <p class="note">Данные хранятся в этом браузере. Если открыть на другом устройстве — это будет отдельный день.</p>
+    </div>
+  </section>
+</div>
+
+<div class="overlay hidden" id="overlay">
+  <div class="focus">
+    <div class="k" id="fKind">фокус</div>
+    <h2 id="fTitle">—</h2>
+    <div class="timer" id="fTimer">00:00</div>
+    <div class="phone">📵 телефон — в другую комнату</div>
+    <p class="hint" id="fHint">—</p>
+    <div class="actions">
+      <button class="btn ghost" id="fStop">Стоп</button>
+      <button class="btn primary" id="fDone">Готово</button>
+    </div>
+  </div>
+</div>
+
+<div class="toast" id="toast"></div>
+
+<script>
+(function(){
+  "use strict";
+
+  var KEY = "smart-day-v1";
+
+  var DEFAULTS = {
+    wake: "07:00",
+    sleep: "23:00",
+    schoolStart: "08:00",
+    schoolEnd: "14:00",
+    examDate: "2027-06-01",
+    cyber: { on: true, hours: 3, days: [2, 4, 6], start: "" },
+    gym: { on: true, days: [1, 3, 5], start: "18:00", dur: 90 },
+    subjects: [
+      { id: "s1", name: "Математика", hours: 6 },
+      { id: "s2", name: "Русский язык", hours: 3 },
+      { id: "s3", name: "Информатика", hours: 4 }
+    ]
+  };
+
+  var state = load();
+  var focus = null;
+  var tick = null;
+
+  function load(){
+    try {
+      var raw = localStorage.getItem(KEY);
+      if (!raw) return { settings: clone(DEFAULTS), days: {}, sessions: [] };
+      var o = JSON.parse(raw);
+      var s = { settings: clone(DEFAULTS), days: {}, sessions: [] };
+      if (o && o.settings) {
+        s.settings = {
+          wake: o.settings.wake || DEFAULTS.wake,
+          sleep: o.settings.sleep || DEFAULTS.sleep,
+          schoolStart: o.settings.schoolStart || DEFAULTS.schoolStart,
+          schoolEnd: o.settings.schoolEnd || DEFAULTS.schoolEnd,
+          examDate: o.settings.examDate || DEFAULTS.examDate,
+          cyber: {
+            on: o.settings.cyber ? o.settings.cyber.on !== false : true,
+            hours: (o.settings.cyber && o.settings.cyber.hours) ? o.settings.cyber.hours : 3,
+            days: (o.settings.cyber && Array.isArray(o.settings.cyber.days)) ? o.settings.cyber.days : [2, 4, 6],
+            start: (o.settings.cyber && o.settings.cyber.start) ? o.settings.cyber.start : ""
+          },
+          gym: {
+            on: o.settings.gym ? o.settings.gym.on !== false : true,
+            days: (o.settings.gym && Array.isArray(o.settings.gym.days)) ? o.settings.gym.days : [1, 3, 5],
+            start: (o.settings.gym && o.settings.gym.start) ? o.settings.gym.start : "18:00",
+            dur: (o.settings.gym && o.settings.gym.dur) ? o.settings.gym.dur : 90
+          },
+          subjects: Array.isArray(o.settings.subjects) && o.settings.subjects.length
+            ? o.settings.subjects : clone(DEFAULTS.subjects)
+        };
+      }
+      if (o && o.days) s.days = o.days;
+      if (o && Array.isArray(o.sessions)) s.sessions = o.sessions;
+      if (s.settings.cyber && !s.settings.cyber.start) s.settings.cyber.start = todayKey();
+      return s;
+    } catch (e) {
+      return { settings: clone(DEFAULTS), days: {}, sessions: [] };
+    }
+  }
+  function clone(o){ return JSON.parse(JSON.stringify(o)); }
+  function save(){ try { localStorage.setItem(KEY, JSON.stringify(state)); } catch(e){} }
+
+  /* ---------- время ---------- */
+  function hm(str){ var p = String(str).split(":"); return (+p[0]) * 60 + (+p[1] || 0); }
+  function fmt(m){
+    m = Math.max(0, Math.round(m));
+    var h = Math.floor(m / 60) % 24, mm = m % 60;
+    return (h < 10 ? "0" : "") + h + ":" + (mm < 10 ? "0" : "") + mm;
+  }
+  function nowMin(){ var d = new Date(); return d.getHours() * 60 + d.getMinutes(); }
+  function todayKey(){
+    var d = new Date();
+    return d.getFullYear() + "-" + pad(d.getMonth() + 1) + "-" + pad(d.getDate());
+  }
+  function pad(n){ return (n < 10 ? "0" : "") + n; }
+  function dateKeyOf(d){ return d.getFullYear() + "-" + pad(d.getMonth() + 1) + "-" + pad(d.getDate()); }
+  function daysBetween(a, b){
+    var pa = a.split("-"), pb = b.split("-");
+    var da = new Date(+pa[0], +pa[1]-1, +pa[2]);
+    var db = new Date(+pb[0], +pb[1]-1, +pb[2]);
+    return Math.round((db - da) / 86400000);
+  }
+
+  /* ---------- предметы ---------- */
+  function subjectById(id){
+    for (var i = 0; i < state.settings.subjects.length; i++) {
+      if (state.settings.subjects[i].id === id) return state.settings.subjects[i];
+    }
+    return null;
+  }
+  function lastStudied(subjectId){
+    var last = null;
+    for (var i = 0; i < state.sessions.length; i++) {
+      var s = state.sessions[i];
+      if (s.subjectId !== subjectId) continue;
+      if (!last || s.date > last) last = s.date;
+    }
+    return last;
+  }
+  function weekMinutes(){
+    var res = {};
+    var today = new Date();
+    for (var i = 0; i < state.sessions.length; i++) {
+      var s = state.sessions[i];
+      if (daysBetween(s.date, dateKeyOf(today)) > 6) continue;
+      res[s.subjectId] = (res[s.subjectId] || 0) + s.min;
+    }
+    return res;
+  }
+
+  function pickSubject(kind, dateKey, extra, used){
+    var subs = state.settings.subjects;
+    if (!subs.length) return null;
+
+    var pool = subs;
+    if (used) {
+      var free = subs.filter(function(s){ return !used[s.id]; });
+      if (free.length >= 1) pool = free;
+    }
+
+    if (kind === "repeat") {
+      var best = null, bestGap = -1;
+      for (var i = 0; i < pool.length; i++) {
+        var last = lastStudied(pool[i].id);
+        var gap = last ? daysBetween(last, dateKey) : 99;
+        if (gap >= 2 && gap > bestGap) { best = pool[i]; bestGap = gap; }
+      }
+      if (best) return best;
+      // нечего повторять — берём самый запущенный
+    }
+
+    var have = weekMinutes();
+    if (extra) {
+      for (var k in extra) { have[k] = (have[k] || 0) + extra[k]; }
+    }
+    var pick = null, bestScore = -1e9;
+    for (var j = 0; j < pool.length; j++) {
+      var s = pool[j];
+      var done = have[s.id] || 0;
+      var score = (s.hours * 60) - done;
+      if (score > bestScore) { bestScore = score; pick = s; }
+    }
+    return pick;
+  }
+
+  /* ---------- кибербез ---------- */
+  function cyberCfg(){
+    if (!state.settings.cyber) {
+      state.settings.cyber = { on: true, hours: 3, days: [1, 3, 5], start: "" };
+    }
+    return state.settings.cyber;
+  }
+  function cyberToday(dateKey){
+    var c = cyberCfg();
+    if (!c.on) return false;
+    var p = dateKey.split("-");
+    var wd = new Date(+p[0], +p[1] - 1, +p[2]).getDay();
+    return c.days.indexOf(wd) !== -1;
+  }
+  function cyberMinutes(){
+    var c = cyberCfg();
+    var n = Math.max(1, c.days.length || 1);
+    var per = Math.round((c.hours * 60 / n) / 5) * 5;
+    return Math.min(90, Math.max(30, per));
+  }
+  function cyberWeek(dateKey){
+    var c = cyberCfg();
+    if (!c.start) return 0;
+    var d = daysBetween(c.start, dateKey);
+    if (d < 0) return 0;
+    return Math.floor(d / 7) + 1;
+  }
+
+  function gymCfg(){
+    if (!state.settings.gym) {
+      state.settings.gym = { on: true, days: [1, 3, 5], start: "18:00", dur: 90 };
+    }
+    return state.settings.gym;
+  }
+  function gymToday(dateKey){
+    var g = gymCfg();
+    if (!g.on) return null;
+    var p = dateKey.split("-");
+    var wd = new Date(+p[0], +p[1] - 1, +p[2]).getDay();
+    return g.days.indexOf(wd) !== -1 ? g : null;
+  }
+
+  /* ---------- генерация дня ---------- */
+  function blockMin(b){ return hm(b.start); }
+  function blockEndMin(b){ return hm(b.end); }
+
+  function newBlock(startMin, dur, kind, subject, title){
+    var subj = subject || null;
+    return {
+      id: "b" + startMin + "_" + kind + "_" + Math.random().toString(36).slice(2, 6),
+      start: fmt(startMin),
+      end: fmt(startMin + dur),
+      kind: kind,
+      subjectId: subj ? subj.id : null,
+      subjectName: subj ? subj.name : null,
+      title: title || "",
+      done: false,
+      minutes: dur
+    };
+  }
+
+  function generateDay(fromMin, dateKey){
+    var s = state.settings;
+    var sleepM = hm(s.sleep);
+    var cur = Math.max(fromMin, hm(s.wake));
+    var out = [];
+    var dp = dateKey.split("-");
+    var wd = new Date(+dp[0], +dp[1] - 1, +dp[2]).getDay();
+    var isSchoolDay = wd >= 1 && wd <= 5;
+
+    if (isSchoolDay) {
+      if (cur < hm(s.schoolStart)) {
+        out.push(newBlock(cur, hm(s.schoolStart) - cur, "free", null, "Утро, сборы"));
+        cur = hm(s.schoolStart);
+      }
+      if (cur < hm(s.schoolEnd)) {
+        out.push(newBlock(cur, hm(s.schoolEnd) - cur, "school", null, "Школа"));
+        cur = hm(s.schoolEnd);
+      }
+    } else {
+      var wkStart = Math.max(cur, 11 * 60);
+      if (wkStart > cur) {
+        out.push(newBlock(cur, wkStart - cur, "free", null, "Утро без спешки"));
+      }
+      cur = wkStart;
+    }
+    if (cur + 50 <= sleepM) {
+      out.push(newBlock(cur, 50, "meal", null, "Обед и отдых"));
+      cur += 50;
+    }
+
+    var slots = 0;
+    var planned = {};
+    var usedToday = {};
+    var gym = gymToday(dateKey);
+    var maxStudies = gym ? 2 : 3;
+    while (slots < maxStudies && cur + 45 <= sleepM - 60) {
+      var subj = pickSubject("study", dateKey, planned, usedToday);
+      out.push(newBlock(cur, 45, "study", subj,
+        subj ? ("Новая тема · " + subj.name) : "Учёба"));
+      if (subj) {
+        planned[subj.id] = (planned[subj.id] || 0) + 45;
+        usedToday[subj.id] = true;
+      }
+      cur += 45;
+      if (cur + 15 <= sleepM - 60) {
+        out.push(newBlock(cur, 15, "free", null, "Перерыв"));
+        cur += 15;
+      }
+      slots++;
+    }
+
+    if (cur + 30 <= sleepM - 60) {
+      var rep = pickSubject("repeat", dateKey, planned, usedToday);
+      out.push(newBlock(cur, 30, "repeat", rep,
+        rep ? ("Повторение · " + rep.name) : "Повторение"));
+      cur += 30;
+    }
+
+    if (gym) {
+      var gs = hm(gym.start);
+      if (gs < cur) gs = cur;
+      if (gs > cur) {
+        out.push(newBlock(cur, gs - cur, "free", null, "Свободное время"));
+      }
+      if (gs + gym.dur <= sleepM - 15) {
+        out.push(newBlock(gs, gym.dur, "gym", null, "Спортзал"));
+        cur = gs + gym.dur;
+        if (cur + 30 <= sleepM - 45) {
+          out.push(newBlock(cur, 30, "meal", null, "Ужин"));
+          cur += 30;
+        }
+      }
+    } else if (cur < 19 * 60 && cur + 40 <= sleepM - 60) {
+      out.push(newBlock(cur, 40, "sport", null, "Прогулка или спорт"));
+      cur += 40;
+    }
+
+    if (cyberToday(dateKey)) {
+      var cdur = cyberMinutes();
+      var cstart = Math.max(cur, 19 * 60);
+      if (cstart > cur) {
+        out.push(newBlock(cur, cstart - cur, "free", null, "Свободное время"));
+      }
+      if (cstart + cdur <= sleepM - 30) {
+        var wk = cyberWeek(dateKey);
+        out.push(newBlock(cstart, cdur, "cyber", null,
+          wk ? ("Кибербез · неделя " + Math.min(wk, 12)) : "Кибербез: практика"));
+        cur = cstart + cdur;
+      }
+    }
+
+    if (cur < sleepM - 60) {
+      out.push(newBlock(cur, (sleepM - 60) - cur, "free", null, "Свободное время"));
+      cur = sleepM - 60;
+    }
+    if (cur < sleepM) {
+      out.push(newBlock(cur, sleepM - cur, "offline", null, "Без экрана, подготовка ко сну"));
+    }
+
+    return out;
+  }
+
+  function getDay(dateKey){
+    if (!state.days[dateKey]) {
+      state.days[dateKey] = { blocks: generateDay(0, dateKey), builtAt: Date.now() };
+      save();
+    }
+    return state.days[dateKey];
+  }
+
+  function rebuildDay(){
+    var key = todayKey();
+    var now = nowMin();
+    var s = state.settings;
+
+    if (now >= hm(s.sleep) - 15) {
+      toast("День уже закончился — пересоберу утром");
+      return;
+    }
+
+    var day = state.days[key];
+    var kept = [];
+    if (day) {
+      day.blocks.forEach(function(b){
+        if (b.done) kept.push(b);
+      });
+    }
+    var fresh = generateDay(Math.ceil(now / 5) * 5, key);
+    if (!fresh.length) {
+      toast("Пересобирать нечего — день закончился");
+      return;
+    }
+    state.days[key] = { blocks: kept.concat(fresh), builtAt: Date.now() };
+    save();
+    renderDay();
+    toast("День пересобран");
+  }
+
+  function buildFullDay(){
+    var key = todayKey();
+    var day = state.days[key];
+    var kept = [];
+    if (day) {
+      day.blocks.forEach(function(b){
+        if (b.done) kept.push(b);
+      });
+    }
+    state.days[key] = { blocks: kept.concat(generateDay(0, key)), builtAt: Date.now() };
+    save();
+    renderDay();
+    toast("День собран заново");
+  }
+
+  /* ---------- действия ---------- */
+  function completeBlock(blockId, actualMin){
+    var key = todayKey();
+    var day = state.days[key];
+    if (!day) return;
+    var b = null;
+    for (var i = 0; i < day.blocks.length; i++) {
+      if (day.blocks[i].id === blockId) { b = day.blocks[i]; break; }
+    }
+    if (!b) return;
+    b.done = true;
+    if (typeof actualMin === "number") b.actual = actualMin;
+    if (b.subjectId && actualMin > 0) {
+      state.sessions.push({
+        date: key,
+        subjectId: b.subjectId,
+        min: Math.round(actualMin),
+        ts: Date.now()
+      });
+    }
+    save();
+    renderDay();
+    renderStats();
+  }
+
+  function startFocus(blockId){
+    var key = todayKey();
+    var day = state.days[key];
+    var b = null;
+    for (var i = 0; i < day.blocks.length; i++) {
+      if (day.blocks[i].id === blockId) { b = day.blocks[i]; break; }
+    }
+    if (!b) return;
+
+    var startMin = Math.max(nowMin(), hm(b.start));
+    var endMin = hm(b.end);
+    if (endMin <= startMin) endMin = startMin + 10;
+
+    focus = { block: b, end: endMin, startedAt: startMin };
+
+    document.getElementById("fKind").textContent =
+      b.kind === "repeat" ? "повторение" : b.kind === "study" ? "учёба" : b.kind === "cyber" ? "кибербез" : "фокус";
+    document.getElementById("fTitle").textContent = b.title || "Блок";
+    document.getElementById("fHint").textContent = startAction(b);
+    document.getElementById("overlay").classList.remove("hidden");
+    updateTimer();
+
+    clearInterval(tick);
+    tick = setInterval(updateTimer, 1000);
+  }
+
+  function startAction(b){
+    if (b.kind === "study") return "Первые 2 минуты: открой тетрадь, напиши дату и тему. Не пытайся сделать всё — просто начни.";
+    if (b.kind === "repeat") return "Закрой тетрадь и вспомни, что было в прошлый раз. Потом проверь себя по записям.";
+    if (b.kind === "cyber") return "Открой трекер, найди свою неделю и сделай один пункт из списка. Один — не весь блок.";
+    if (b.kind === "gym") return "Сумка собрана с вечера? Тогда просто выйди из дома — остальное сделаешь на месте.";
+    if (b.kind === "sport") return "Обувь, улица, 10 минут быстрым шагом. Дальше пойдёт само.";
+    return "Просто начни. Две минуты — и ты уже внутри.";
+  }
+
+  function updateTimer(){
+    if (!focus) return;
+    var d = new Date();
+    var nowSec = d.getHours() * 3600 + d.getMinutes() * 60 + d.getSeconds();
+    var left = focus.end * 60 - nowSec;
+    if (left < 0) left = 0;
+    var mm = Math.floor(left / 60), ss = left % 60;
+    document.getElementById("fTimer").textContent = pad(mm) + ":" + pad(ss);
+    if (left <= 0) { clearInterval(tick); tick = null; }
+  }
+
+  function closeFocus(done){
+    clearInterval(tick);
+    tick = null;
+    var f = focus;
+    focus = null;
+    document.getElementById("overlay").classList.add("hidden");
+    if (!f) return;
+    if (done) {
+      var spent = Math.max(1, nowMin() - f.startedAt);
+      completeBlock(f.block.id, Math.min(spent, f.block.minutes || spent));
+      toast("Записано: " + spent + " мин");
+    }
+  }
+
+  /* ---------- рендер ---------- */
+  function renderHeader(){
+    var d = new Date();
+    var months = ["января","февраля","марта","апреля","мая","июня","июля","августа","сентября","октября","ноября","декабря"];
+    var wd = ["воскресенье","понедельник","вторник","среда","четверг","пятница","суббота"];
+    document.getElementById("dateLbl").textContent = wd[d.getDay()] + ", " + d.getDate() + " " + months[d.getMonth()];
+
+    var exam = state.settings.examDate;
+    var sub = "Школа " + state.settings.schoolStart + "–" + state.settings.schoolEnd;
+    if (exam) {
+      var left = daysBetween(todayKey(), exam);
+      if (left >= 0) sub += " · до экзамена " + left + " дн.";
+    }
+    document.getElementById("subLbl").textContent = sub;
+  }
+
+  function blockKindLabel(kind){
+    return ({ study:"учёба", repeat:"повтор", cyber:"кибербез", gym:"зал", school:"школа", meal:"еда", sport:"спорт", free:"свободно", offline:"без экрана" })[kind] || kind;
+  }
+
+  function renderDay(){
+    renderHeader();
+    var key = todayKey();
+    var day = getDay(key);
+    var now = nowMin();
+    var list = document.getElementById("timeline");
+    list.innerHTML = "";
+
+    if (!day.blocks.length) {
+      var empty = document.createElement("div");
+      empty.className = "card";
+      empty.style.textAlign = "center";
+      var msg = document.createElement("div");
+      msg.style.cssText = "color:var(--muted);font-size:14px;margin-bottom:12px";
+      msg.textContent = "На этот день расписания нет";
+      var fbtn = document.createElement("button");
+      fbtn.className = "btn primary";
+      fbtn.id = "fullBuildBtn";
+      fbtn.textContent = "Собрать день заново";
+      empty.appendChild(msg);
+      empty.appendChild(fbtn);
+      list.appendChild(empty);
+    }
+
+    var current = null, next = null;
+    day.blocks.slice().sort(function(a,b){ return blockMin(a) - blockMin(b); }).forEach(function(b){
+      var start = blockMin(b), end = blockEndMin(b);
+      var isNow = now >= start && now < end;
+      var isPast = now >= end;
+      if (isNow && !b.done) current = b;
+      if (!b.done && start > now && !next) next = b;
+
+      var row = document.createElement("div");
+      row.className = "row";
+      var t = document.createElement("div");
+      t.className = "time";
+      t.textContent = b.start;
+      var card = document.createElement("div");
+      card.className = "block " + b.kind;
+      if (b.done) card.className += " done";
+      else if (isNow) card.className += " current";
+      else if (isPast && (b.kind === "study" || b.kind === "repeat" || b.kind === "sport")) card.className += " missed";
+
+      var main = document.createElement("div");
+      main.className = "b-main";
+      var title = document.createElement("div");
+      title.className = "b-title";
+      title.textContent = b.title || blockKindLabel(b.kind);
+      var meta = document.createElement("div");
+      meta.className = "b-meta";
+      meta.textContent = b.start + "–" + b.end + " · " + blockKindLabel(b.kind);
+      main.appendChild(title);
+      main.appendChild(meta);
+
+      card.appendChild(main);
+
+      if (!b.done && (b.kind === "study" || b.kind === "repeat" || b.kind === "cyber" || isNow)) {
+        var btn = document.createElement("button");
+        btn.className = "btn small";
+        btn.textContent = b.done ? "" : "▶";
+        btn.style.flex = "none";
+        btn.onclick = function(){ startFocus(b.id); };
+        card.appendChild(btn);
+      }
+      if (b.done) {
+        var ok = document.createElement("div");
+        ok.className = "b-kind";
+        ok.textContent = "✓";
+        card.appendChild(ok);
+      }
+
+      row.appendChild(t);
+      row.appendChild(card);
+      list.appendChild(row);
+    });
+
+    // карточка «сейчас»
+    var target = current || next;
+    var lbl = document.getElementById("nowLabel");
+    var titleEl = document.getElementById("nowTitle");
+    var timeEl = document.getElementById("nowTime");
+    var leftEl = document.getElementById("nowLeft");
+    var leftLbl = document.getElementById("nowLeftLbl");
+    var btn = document.getElementById("nowBtn");
+
+    if (!target) {
+      if (!day.blocks.length) {
+        lbl.textContent = "пусто";
+        titleEl.textContent = "Расписания на сегодня нет";
+        timeEl.textContent = "Собери день заново — кнопка ниже";
+        leftEl.textContent = "—";
+        leftLbl.textContent = "свободно";
+        btn.disabled = true;
+        btn.textContent = "Нет расписания";
+        return;
+      }
+      lbl.textContent = "день закончен";
+      titleEl.textContent = "На сегодня всё";
+      timeEl.textContent = "Отдыхай — это тоже часть плана";
+      leftEl.textContent = "—";
+      leftLbl.textContent = "свободно";
+      btn.disabled = true;
+      btn.textContent = "Готово на сегодня";
+      return;
+    }
+
+    btn.disabled = false;
+    if (current) {
+      lbl.textContent = "сейчас идёт";
+      leftEl.textContent = Math.max(0, blockEndMin(current) - now);
+      leftLbl.textContent = "минут осталось";
+    } else {
+      lbl.textContent = "дальше";
+      leftEl.textContent = Math.max(0, blockMin(next) - now);
+      leftLbl.textContent = "минут до старта";
+    }
+    titleEl.textContent = target.title || blockKindLabel(target.kind);
+    timeEl.textContent = target.start + "–" + target.end;
+    btn.textContent = current ? "Продолжить" : "Начать";
+    btn.onclick = function(){ startFocus(target.id); };
+
+    var progress = day.blocks.filter(function(b){ return b.done; }).length;
+    document.getElementById("subLbl").textContent += " · сделано " + progress + "/" + day.blocks.length;
+  }
+
+  function renderStats(){
+    var week = weekMinutes();
+    var total = 0;
+    for (var k in week) total += week[k];
+    document.getElementById("stWeek").textContent = (Math.round(total / 6) / 10).toFixed(1).replace(".", ",") + " ч";
+
+    var doneBlocks = 0;
+    var streak = 0;
+    var today = new Date();
+
+    function doneCount(key){
+      var day = state.days[key];
+      return day ? day.blocks.filter(function(b){ return b.done; }).length : 0;
+    }
+
+    doneBlocks = doneCount(dateKeyOf(today));
+    var offset = doneBlocks > 0 ? 0 : 1;
+    for (var d = offset; d < 60; d++) {
+      var dt = new Date(today.getTime() - d * 86400000);
+      if (doneCount(dateKeyOf(dt)) > 0) streak++;
+      else break;
+    }
+    document.getElementById("stBlocks").textContent = doneBlocks;
+    document.getElementById("stStreak").textContent = streak;
+
+    var exam = state.settings.examDate;
+    if (exam) {
+      var left = daysBetween(todayKey(), exam);
+      document.getElementById("stExam").textContent = left >= 0 ? left + " дн." : "прошёл";
+    }
+
+    var bars = document.getElementById("bars");
+    bars.innerHTML = "";
+    var subs = state.settings.subjects;
+    if (!subs.length) { bars.innerHTML = '<p class="empty">Добавь предметы в настройках</p>'; return; }
+    subs.forEach(function(s){
+      var min = week[s.id] || 0;
+      var target = s.hours * 60;
+      var pct = target ? Math.min(100, Math.round(min / target * 100)) : 0;
+      var row = document.createElement("div");
+      row.className = "bar-row";
+      row.innerHTML =
+        '<div class="bar-top"><span>' + esc(s.name) + '</span>' +
+        '<em>' + (Math.round(min / 6) / 10).toFixed(1).replace(".", ",") + " / " + s.hours + ' ч</em></div>' +
+        '<div class="bar"><i style="width:' + pct + '%"></i></div>';
+      bars.appendChild(row);
+    });
+
+    if (cyberCfg().on) {
+      var cm = week["cyber"] || 0;
+      var ct = cyberCfg().hours * 60;
+      var cpct = ct ? Math.min(100, Math.round(cm / ct * 100)) : 0;
+      var crow = document.createElement("div");
+      crow.className = "bar-row";
+      crow.innerHTML =
+        '<div class="bar-top"><span>Кибербез</span>' +
+        '<em>' + (Math.round(cm / 6) / 10).toFixed(1).replace(".", ",") + " / " + cyberCfg().hours + ' ч</em></div>' +
+        '<div class="bar"><i style="width:' + cpct + '%"></i></div>';
+      bars.appendChild(crow);
+    }
+  }
+
+  function esc(s){ return String(s).replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;"); }
+
+  /* ---------- настройки ---------- */
+  function renderSettings(){
+    var s = state.settings;
+    document.getElementById("setWake").value = s.wake;
+    document.getElementById("setSleep").value = s.sleep;
+    document.getElementById("setSchoolStart").value = s.schoolStart;
+    document.getElementById("setSchoolEnd").value = s.schoolEnd;
+    document.getElementById("setExam").value = s.examDate || "";
+
+    var list = document.getElementById("subjList");
+    list.innerHTML = "";
+    s.subjects.forEach(function(sub){
+      var row = document.createElement("div");
+      row.className = "subj";
+      row.innerHTML =
+        '<input type="text" value="' + esc(sub.name) + '" data-name="' + sub.id + '">' +
+        '<input type="number" min="1" max="30" step="1" value="' + sub.hours + '" data-hours="' + sub.id + '">' +
+        '<button class="del" data-del="' + sub.id + '" title="удалить">×</button>';
+      list.appendChild(row);
+    });
+
+    var c = cyberCfg();
+    document.getElementById("cyberOn").checked = !!c.on;
+    document.getElementById("cyberHours").value = c.hours;
+    document.getElementById("cyberStart").value = c.start || "";
+    dayChips(document.getElementById("cyberDays"), c.days);
+
+    var g = gymCfg();
+    document.getElementById("gymOn").checked = !!g.on;
+    document.getElementById("gymStart").value = g.start;
+    document.getElementById("gymDur").value = g.dur;
+    dayChips(document.getElementById("gymDays"), g.days);
+  }
+
+  function dayChips(box, days){
+    if (!box) return;
+    box.innerHTML = "";
+    [["Пн", 1], ["Вт", 2], ["Ср", 3], ["Чт", 4], ["Пт", 5], ["Сб", 6], ["Вс", 0]].forEach(function(d){
+      var b = document.createElement("button");
+      b.type = "button";
+      b.className = "daychip" + (days.indexOf(d[1]) !== -1 ? " on" : "");
+      b.textContent = d[0];
+      b.setAttribute("data-day", d[1]);
+      b.onclick = function(){
+        var day = +b.getAttribute("data-day");
+        var i = days.indexOf(day);
+        if (i === -1) days.push(day); else days.splice(i, 1);
+        b.classList.toggle("on");
+      };
+      box.appendChild(b);
+    });
+  }
+
+  /* ---------- события ---------- */
+  function toast(msg){
+    var el = document.getElementById("toast");
+    el.textContent = msg;
+    el.classList.add("show");
+    clearTimeout(toast._t);
+    toast._t = setTimeout(function(){ el.classList.remove("show"); }, 2200);
+  }
+
+  document.addEventListener("click", function(e){
+    var el = e.target;
+
+    if (el.classList && el.classList.contains("tab")) {
+      document.querySelectorAll(".tab").forEach(function(t){ t.classList.toggle("active", t === el); });
+      var name = el.getAttribute("data-tab");
+      document.querySelectorAll("#tab-day, #tab-stats, #tab-settings").forEach(function(p){
+        p.classList.toggle("hidden", p.id !== "tab-" + name);
+      });
+      if (name === "stats") renderStats();
+      if (name === "settings") renderSettings();
+      return;
+    }
+
+    if (el.id === "rebuildBtn") { rebuildDay(); return; }
+    if (el.id === "fullBuildBtn") { buildFullDay(); return; }
+    if (el.id === "addRepeatBtn") {
+      var key = todayKey();
+      var day = getDay(key);
+      day.blocks.push(newBlock(Math.ceil(nowMin() / 5) * 5, 30, "repeat", pickSubject("repeat", key), "Повторение (добавлено)"));
+      save(); renderDay(); toast("Повторение добавлено"); return;
+    }
+    if (el.id === "fDone") { closeFocus(true); return; }
+    if (el.id === "fStop") { closeFocus(false); return; }
+
+    if (el.getAttribute && el.getAttribute("data-del")) {
+      var id = el.getAttribute("data-del");
+      state.settings.subjects = state.settings.subjects.filter(function(s){ return s.id !== id; });
+      renderSettings();
+      return;
+    }
+
+    if (el.id === "addSubj") {
+      state.settings.subjects.push({ id: "s" + Date.now(), name: "Новый предмет", hours: 2 });
+      renderSettings();
+      return;
+    }
+
+    if (el.id === "saveBtn") {
+      var s = state.settings;
+      s.wake = document.getElementById("setWake").value || s.wake;
+      s.sleep = document.getElementById("setSleep").value || s.sleep;
+      s.schoolStart = document.getElementById("setSchoolStart").value || s.schoolStart;
+      s.schoolEnd = document.getElementById("setSchoolEnd").value || s.schoolEnd;
+      s.examDate = document.getElementById("setExam").value || "";
+      s.cyber = {
+        on: document.getElementById("cyberOn").checked,
+        hours: Math.max(1, Math.min(20, parseInt(document.getElementById("cyberHours").value, 10) || 3)),
+        days: (s.cyber && Array.isArray(s.cyber.days)) ? s.cyber.days : [2, 4, 6],
+        start: document.getElementById("cyberStart").value || ""
+      };
+      s.gym = {
+        on: document.getElementById("gymOn").checked,
+        days: (s.gym && Array.isArray(s.gym.days)) ? s.gym.days : [1, 3, 5],
+        start: document.getElementById("gymStart").value || "18:00",
+        dur: Math.max(30, Math.min(180, parseInt(document.getElementById("gymDur").value, 10) || 90))
+      };
+      document.querySelectorAll("[data-name]").forEach(function(inp){
+        var id = inp.getAttribute("data-name");
+        var sub = subjectById(id);
+        if (sub) sub.name = inp.value.trim() || sub.name;
+      });
+      document.querySelectorAll("[data-hours]").forEach(function(inp){
+        var id = inp.getAttribute("data-hours");
+        var sub = subjectById(id);
+        if (sub) sub.hours = Math.max(1, Math.min(30, parseInt(inp.value, 10) || 1));
+      });
+      save();
+      renderStats();
+      if (nowMin() < hm(s.sleep) - 30) rebuildDay();
+      else renderDay();
+      toast("Сохранено");
+      return;
+    }
+
+    if (el.id === "resetBtn") {
+      if (!confirm("Сбросить настройки и весь прогресс?")) return;
+      state = { settings: clone(DEFAULTS), days: {}, sessions: [] };
+      save(); renderDay(); renderStats(); renderSettings();
+      toast("Сброшено");
+      return;
+    }
+  });
+
+  document.addEventListener("change", function(e){
+    var el = e.target;
+    if (el.getAttribute && el.getAttribute("data-hours")) {
+      var id = el.getAttribute("data-hours");
+      var sub = subjectById(id);
+      if (sub) sub.hours = Math.max(1, Math.min(30, parseInt(el.value, 10) || 1));
+      save();
+    }
+  });
+
+  /* ---------- старт ---------- */
+  renderDay();
+  renderStats();
+  renderSettings();
+  setInterval(function(){
+    if (!focus) renderDay();
+  }, 60000);
+  setInterval(updateTimer, 1000);
+})();
+</script>
+</body>
+</html>
