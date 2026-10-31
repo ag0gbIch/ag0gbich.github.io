@@ -1,5 +1,5 @@
 /* День и кибербез — офлайн-кэш */
-var CACHE = "den-i-cyber-v1";
+var CACHE = "den-i-cyber-v2";
 var ASSETS = [
   "./",
   "./index.html",
@@ -48,7 +48,7 @@ self.addEventListener("fetch", function (event) {
 
   if (request.mode === "navigate") {
     event.respondWith(
-      fetch(request).then(function (response) {
+      fetch(request, { cache: "no-store" }).then(function (response) {
         var copy = response.clone();
         var path = new URL(request.url).pathname.split("/").pop() || "index.html";
         caches.open(CACHE).then(function (cache) {
