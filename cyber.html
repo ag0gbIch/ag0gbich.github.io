@@ -92,6 +92,16 @@
   .hint{margin:0 0 14px;color:var(--dim);font-size:12.5px}
 
   /* week cards */
+  .tracks{display:flex;gap:6px;flex-wrap:wrap;margin:0 0 14px}
+  .tchip{
+    appearance:none;font:inherit;font-size:12.5px;padding:7px 12px;border-radius:999px;cursor:pointer;
+    border:1px solid var(--line2);background:var(--card2);color:var(--muted);transition:.15s;
+  }
+  .tchip em{font-style:normal;font-family:ui-monospace,Menlo,monospace;font-size:11px;color:var(--dim);margin-left:4px}
+  .tchip:hover{color:var(--txt)}
+  .tchip.on{background:rgba(46,230,168,.12);border-color:rgba(46,230,168,.35);color:var(--acc)}
+  .tchip.on em{color:var(--acc)}
+
   .week{background:var(--card);border:1px solid var(--line);border-radius:14px;margin-bottom:10px;overflow:hidden;transition:border-color .2s,box-shadow .2s}
   .week.current{border-color:rgba(46,230,168,.32);box-shadow:0 0 0 1px rgba(46,230,168,.08),0 18px 40px -34px rgba(46,230,168,.5)}
   .week.done-week{border-color:rgba(46,230,168,.16)}
@@ -375,7 +385,8 @@
   </nav>
 
   <section id="tab-plan" class="panel">
-    <p class="hint">Отмечай задачи и логируй часы — прогресс считается автоматически. Текущая неделя открыта сама. Материалы к неделе — внутри карточки.</p>
+    <p class="hint">База — 12 недель фундамента. Дальше выбери специализацию: у каждого трека свои недели, свой чек-поинт и материалы.</p>
+    <div class="tracks" id="trackChips"></div>
     <div id="planList"></div>
   </section>
 
@@ -528,8 +539,16 @@
   "use strict";
 
   /* ---------- данные плана ---------- */
+  var TRACKS = [
+    { id:"base", name:"База" },
+    { id:"blue", name:"Blue Team" },
+    { id:"red", name:"Red Team" },
+    { id:"appsec", name:"AppSec" },
+    { id:"career", name:"Карьера" }
+  ];
+
   var PLAN = [
-    { n:1, block:"Блок 1 · Сети + Linux", title:"Как данные ходят по сети", target:8, res:"Practical Networking · Professor Messer Network+ (1–2) · OverTheWire Bandit",
+    { n:1, track:"base", block:"Блок 1 · Сети + Linux", title:"Как данные ходят по сети", target:8, res:"Practical Networking · Professor Messer Network+ (1–2) · OverTheWire Bandit",
       items:[
         "Теория: OSI/TCP-IP на практике, IP-адресация, CIDR, порты",
         "Практика: ipconfig, ip a, ping, traceroute, nslookup, curl -v",
@@ -537,7 +556,7 @@
         "Посчитать хосты в /24, /26, /28 руками, без калькулятора",
         "Linux: Bandit 0–15, файловая система, find/grep, права rwx"
       ]},
-    { n:2, block:"Блок 1 · Сети + Linux", title:"Протоколы, на которых всё стоит", target:8, res:"Practical Networking · TryHackMe: Pre Security",
+    { n:2, track:"base", block:"Блок 1 · Сети + Linux", title:"Протоколы, на которых всё стоит", target:8, res:"Practical Networking · TryHackMe: Pre Security",
       items:[
         "Теория: TCP vs UDP, рукопожатие, DNS, DHCP, ARP, HTTP",
         "Wireshark: найти TCP handshake, DNS-запрос и HTTP GET",
@@ -545,7 +564,7 @@
         "Эксперимент с hosts-файлом: сломать DNS и посмотреть результат",
         "Linux: Bandit 15–20, chmod/chown, ps/top/kill, пайпы"
       ]},
-    { n:3, block:"Блок 1 · Сети + Linux", title:"Шифрование в сети и периметр", target:9, res:"Practical Networking (TLS) · Wireshark · OWASP",
+    { n:3, track:"base", block:"Блок 1 · Сети + Linux", title:"Шифрование в сети и периметр", target:9, res:"Practical Networking (TLS) · Wireshark · OWASP",
       items:[
         "Теория: TLS handshake, сертификаты и цепочка доверия, HTTPS",
         "Теория: NAT, firewall, proxy, VPN, VLAN обзорно",
@@ -554,7 +573,7 @@
         "ufw: закрыть порт и проверить, что он закрылся",
         "Проект: «Разбор моего трафика» — 1 страница выводов"
       ]},
-    { n:4, block:"Блок 2 · Linux, Python, крипта", title:"Linux как администратор", target:8, res:"«The Linux Command Line» (Шоттс) · Bandit 20–25 · TryHackMe: Linux Fundamentals",
+    { n:4, track:"base", block:"Блок 2 · Linux, Python, крипта", title:"Linux как администратор", target:8, res:"«The Linux Command Line» (Шоттс) · Bandit 20–25 · TryHackMe: Linux Fundamentals",
       items:[
         "Процессы и сигналы, systemd, cron, пользователи и группы",
         "SSH по ключу, пакеты, логи /var/log и journalctl",
@@ -563,7 +582,7 @@
         "Найти в логах все неудачные попытки входа",
         "Bandit 20–25 + главы «The Linux Command Line»"
       ]},
-    { n:5, block:"Блок 2 · Linux, Python, крипта", title:"Python для безопасности", target:8, res:"«Automate the Boring Stuff», главы 1–9 · docs.python.org",
+    { n:5, track:"base", block:"Блок 2 · Linux, Python, крипта", title:"Python для безопасности", target:8, res:"«Automate the Boring Stuff», главы 1–9 · docs.python.org",
       items:[
         "Python: типы, списки/словари, файлы, функции, модули",
         "Модули os, sys, re, subprocess, socket, requests",
@@ -571,7 +590,7 @@
         "Скрипт №2: сканер портов на socket с таймаутом (только свои лабы)",
         "Разобрать каждую строку своих скриптов и объяснить вслух"
       ]},
-    { n:6, block:"Блок 2 · Linux, Python, крипта", title:"Криптография без математики", target:8, res:"Crypto101 · Cryptopals",
+    { n:6, track:"base", block:"Блок 2 · Linux, Python, крипта", title:"Криптография без математики", target:8, res:"Crypto101 · Cryptopals",
       items:[
         "Хеш vs шифрование vs кодирование (base64), KDF",
         "Симметричное/асимметричное, подпись, PKI, nonce и IV",
@@ -580,7 +599,7 @@
         "Cryptopals Set 1, задачи 1–8 — руками, не копипастой",
         "Crypto101: прочитать ключевые главы"
       ]},
-    { n:7, block:"Блок 3 · Windows, AD, веб", title:"Windows", target:7, res:"Microsoft Learn · TryHackMe: Windows Fundamentals",
+    { n:7, track:"base", block:"Блок 3 · Windows, AD, веб", title:"Windows", target:7, res:"Microsoft Learn · TryHackMe: Windows Fundamentals",
       items:[
         "Реестр, права NTFS, службы, учётные записи, UAC",
         "Event Log: 4624, 4625, 4688, 4720 и другие ключевые ID",
@@ -588,7 +607,7 @@
         "Создать пользователя и ограничить права на папку через NTFS",
         "PowerShell: Get-Process, Get-Service, Get-EventLog, Get-ChildItem"
       ]},
-    { n:8, block:"Блок 3 · Windows, AD, веб", title:"Active Directory", target:8, res:"Microsoft Learn (AD DS) · TryHackMe: Active Directory Basics",
+    { n:8, track:"base", block:"Блок 3 · Windows, AD, веб", title:"Active Directory", target:8, res:"Microsoft Learn (AD DS) · TryHackMe: Active Directory Basics",
       items:[
         "Домен, контроллер домена, OU, GPO, LDAP",
         "Kerberos обзорно: зачем билеты, DNS в домене",
@@ -596,7 +615,7 @@
         "Создать 3 пользователей и OU, подключить Windows 11 к домену",
         "Найти в логах DC события аутентификации"
       ]},
-    { n:9, block:"Блок 3 · Windows, AD, веб", title:"Веб и данные", target:8, res:"PortSwigger Web Security Academy · OWASP Top 10",
+    { n:9, track:"base", block:"Блок 3 · Windows, AD, веб", title:"Веб и данные", target:8, res:"PortSwigger Web Security Academy · OWASP Top 10",
       items:[
         "HTTP глубже: методы, статусы, cookies, сессии, CORS",
         "SQL базово: SELECT/WHERE/JOIN/INSERT",
@@ -605,21 +624,21 @@
         "OWASP Juice Shop в Docker: первые задания",
         "5 SQL-запросов к тестовой БД (sqlite)"
       ]},
-    { n:10, block:"Блок 4 · Направление и проект", title:"Выбери направление", target:6, res:"TryHackMe · HackTheBox · PortSwigger Academy",
+    { n:10, track:"base", block:"Блок 4 · Направление и проект", title:"Выбери направление", target:6, res:"TryHackMe · HackTheBox · PortSwigger Academy",
       items:[
         "SOC / Blue Team: первый модуль TryHackMe SOC Level 1 или LetsDefend",
         "Пентест: первый модуль Jr Penetration Tester или HTB Starting Point",
         "AppSec: первые темы PortSwigger Academy",
         "Записать выбранное направление и почему — в заметки недели"
       ]},
-    { n:11, block:"Блок 4 · Направление и проект", title:"Своя лаборатория", target:8, res:"VirtualBox · Metasploitable2 · TryHackMe / HackTheBox",
+    { n:11, track:"base", block:"Блок 4 · Направление и проект", title:"Своя лаборатория", target:8, res:"VirtualBox · Metasploitable2 · TryHackMe / HackTheBox",
       items:[
         "VirtualBox: сеть host-only, изоляция от интернета",
         "Kali + Metasploitable2 (или Windows) в одной сети",
         "Первая машина THM/HTB — сам, только подсказки",
         "Зафиксировать шаги: recon → доступ → привилегии → находки"
       ]},
-    { n:12, block:"Блок 4 · Направление и проект", title:"Проект и ревизия", target:8, res:"picoCTF · GitHub",
+    { n:12, track:"base", block:"Блок 4 · Направление и проект", title:"Проект и ревизия", target:8, res:"picoCTF · GitHub",
       items:[
         "Write-up №1: разбор пройденной машины/лабы",
         "Write-up №2: разбор инцидента или уязвимости из новостей",
@@ -627,7 +646,208 @@
         "Ревизия: что понял, что нет, куда дальше",
         "Опубликовать разборы на GitHub"
       ]}
-  ];
+  ,
+{ n:13, track:"blue", block:"Специализация · Blue Team", title:"Мониторинг: что и где логируется", target:8, res:"Sysmon · Event Log · rsyslog",
+      items:[
+        "Настроить Sysmon на Windows-VM и собрать события",
+        "Разобрать ключевые Event ID: 4624, 4625, 4688, 7045",
+        "Поднять rsyslog и собрать логи с Linux-VM",
+        "Найти в логах запуск процесса из %TEMP%",
+        "Настроить централизацию логов (WEF или агент)"
+      ]},
+    { n:14, track:"blue", block:"Специализация · Blue Team", title:"Сеть глазами SOC", target:7, res:"DNS · NetFlow · Malware-Traffic-Analysis",
+      items:[
+        "DNS-логи: подозрительные домены и туннелирование",
+        "Разобрать pcap с C2-трафиком",
+        "NetFlow и прокси-логи: что видно, а что нет",
+        "Найти beaconing по одинаковым интервалам"
+      ]},
+    { n:15, track:"blue", block:"Специализация · Blue Team", title:"SIEM: первый опыт", target:8, res:"Splunk Free · Elastic Stack",
+      items:[
+        "Поднять Splunk Free или Elastic и загрузить свои логи",
+        "10 запросов: топ процессов, неудачные входы, новые службы",
+        "Собрать дашборд на 4 панели",
+        "Настроить алерт на 3 события"
+      ]},
+    { n:16, track:"blue", block:"Специализация · Blue Team", title:"Detection engineering", target:8, res:"Sigma · MITRE ATT&CK",
+      items:[
+        "Разобрать 5 правил Sigma: из чего состоят",
+        "Написать 3 своих правила под свои логи",
+        "Смапить правила на техники MITRE ATT&CK",
+        "Проверить ложные срабатывания и потюнить"
+      ]},
+    { n:17, track:"blue", block:"Специализация · Blue Team", title:"Threat hunting", target:8, res:"ATT&CK · KQL/SPL",
+      items:[
+        "Сформулировать гипотезу: как атакующий закрепится на хосте",
+        "5 запросов в SIEM по техникам ATT&CK",
+        "Найти аномалию в своих логах и описать её",
+        "Оформить hunt-отчёт на одну страницу"
+      ]},
+    { n:18, track:"blue", block:"Специализация · Blue Team", title:"Incident response", target:7, res:"NIST 800-61 · playbooks",
+      items:[
+        "NIST 800-61: фазы и артефакты каждой",
+        "Собрать playbook на один инцидент (фишинг)",
+        "Триаж: приоритеты и первые 15 минут",
+        "Написать сообщение пользователю без паники"
+      ]},
+    { n:19, track:"blue", block:"Специализация · Blue Team", title:"Форензика", target:8, res:"Autopsy · Volatility",
+      items:[
+        "Снять образ диска (FTK Imager или dd)",
+        "Autopsy: найти артефакты в образе",
+        "Volatility: процессы, соединения, инжекты",
+        "Собрать таймлайн событий"
+      ]},
+    { n:20, track:"blue", block:"Специализация · Blue Team", title:"Malware triage", target:8, res:"any.run · YARA · Hybrid Analysis",
+      items:[
+        "Разобрать сэмпл в песочнице",
+        "Извлечь IOC: хеши, домены, IP",
+        "Написать YARA-правило под сэмпл",
+        "Отчёт: что делал и как это детектить"
+      ]},
+
+    { n:21, track:"red", block:"Специализация · Red Team", title:"Методология и легальность", target:6, res:"PTES · OWASP WSTG",
+      items:[
+        "PTES и WSTG: этапы работ",
+        "Scope и Rules of Engagement: что подписывают",
+        "Правило: без письменного разрешения — никаких сканов",
+        "Шаблон отчёта: структура и тон"
+      ]},
+    { n:22, track:"red", block:"Специализация · Red Team", title:"Recon и OSINT", target:8, res:"subfinder · Shodan · crt.sh",
+      items:[
+        "whois, DNS-разведка, сертификаты через crt.sh",
+        "subfinder или amass на своём домене",
+        "Shodan: что о тебе видно снаружи",
+        "10 Google dorks и зачем каждый"
+      ]},
+    { n:23, track:"red", block:"Специализация · Red Team", title:"Сканирование и первый доступ", target:8, res:"nmap · nikto · hydra",
+      items:[
+        "nmap: базовые и продвинутые флаги, NSE",
+        "nikto и whatweb на своей лабе",
+        "Поиск уязвимости и проверка в лабе",
+        "hydra по своему стенду (SSH/HTTP)"
+      ]},
+    { n:24, track:"red", block:"Специализация · Red Team", title:"Веб-эксплуатация", target:9, res:"Burp Suite · PortSwigger",
+      items:[
+        "Burp: перехват, Repeater, Intruder",
+        "PortSwigger: 5 лаб по SQL-инъекциям",
+        "PortSwigger: 5 лаб по XSS",
+        "PortSwigger: 3 лабы по контролю доступа",
+        "Разбор одной уязвимости своими словами"
+      ]},
+    { n:25, track:"red", block:"Специализация · Red Team", title:"Атаки на Active Directory", target:9, res:"BloodHound · impacket",
+      items:[
+        "BloodHound: собрать и прочитать граф",
+        "Kerberoasting и AS-REP в лабе",
+        "impacket: базовые скрипты",
+        "Найти путь кDomain Admin и описать его"
+      ]},
+    { n:26, track:"red", block:"Специализация · Red Team", title:"Повышение привилегий", target:8, res:"GTFOBins · LOLBAS",
+      items:[
+        "Linux: SUID, cron, sudo -l",
+        "Windows: службы, токены, AlwaysInstallElevated",
+        "LOLBAS: пять бинарей для обхода",
+        "Пройти две машины на HTB или TryHackMe"
+      ]},
+    { n:27, track:"red", block:"Специализация · Red Team", title:"Постэксплуатация и пивот", target:8, res:"Sliver · Metasploit · Proxychains",
+      items:[
+        "C2 основы: сессия и команды",
+        "Lateral movement в лабе (psexec, wmiexec)",
+        "Сбор кредов только в своей лабе, opsec-заметки",
+        "Пивот в соседнюю подсеть через прокси"
+      ]},
+    { n:28, track:"red", block:"Специализация · Red Team", title:"Отчёт и защита", target:7, res:"CVSS · отчёты пентеста",
+      items:[
+        "Findings: описание, PoC, влияние, CVSS",
+        "Написать отчёт по своей лабе на 5 находок",
+        "Ремедиация: как чинить каждую",
+        "Debrief: что бы сделал иначе"
+      ]},
+
+    { n:29, track:"appsec", block:"Специализация · AppSec", title:"Secure SDLC и threat modeling", target:7, res:"STRIDE · OWASP ASVS",
+      items:[
+        "STRIDE: разобрать своё приложение по буквам",
+        "Нарисовать DFD потоков данных",
+        "10 security-требований к проекту",
+        "Выбрать уровень ASVS и проверить себя"
+      ]},
+    { n:30, track:"appsec", block:"Специализация · AppSec", title:"OWASP Top 10: часть 1", target:9, res:"PortSwigger Academy",
+      items:[
+        "Injection: SQLi, NoSQLi, OS command",
+        "Broken access control: IDOR, BOLA",
+        "Аутентификация: перебор, сессии, MFA",
+        "8 лаб PortSwigger по этим темам"
+      ]},
+    { n:31, track:"appsec", block:"Специализация · AppSec", title:"OWASP Top 10: часть 2", target:8, res:"OWASP Top 10",
+      items:[
+        "Crypto failures: слабые хеши и ключи",
+        "SSRF: как находится и как чинится",
+        "Deserialization и XXE",
+        "Misconfiguration: заголовки, CORS, debug"
+      ]},
+    { n:32, track:"appsec", block:"Специализация · AppSec", title:"Код-ревью", target:8, res:"Semgrep · OWASP",
+      items:[
+        "Паттерны уязвимостей в Python",
+        "Паттерны в JS и Node",
+        "Прогнать Semgrep по своему проекту",
+        "Ручное ревью трёх реальных pull request"
+      ]},
+    { n:33, track:"appsec", block:"Специализация · AppSec", title:"SAST/DAST/SCA в CI", target:8, res:"GitHub Actions · Trivy",
+      items:[
+        "GitHub Actions: Semgrep и Dependabot",
+        "Secret scanning и pre-commit",
+        "Trivy на свой образ",
+        "Политика: блокировать merge по critical"
+      ]},
+    { n:34, track:"appsec", block:"Специализация · AppSec", title:"API security", target:8, res:"OWASP API Top 10 · jwt.io",
+      items:[
+        "OAuth2 и OIDC: потоки и типичные ошибки",
+        "JWT: alg=none, подмена ключа, срок жизни",
+        "BOLA и IDOR в API",
+        "Rate limiting и защита от перебора"
+      ]},
+    { n:35, track:"appsec", block:"Специализация · AppSec", title:"Контейнеры и облако", target:8, res:"Docker · Kubernetes · Trivy",
+      items:[
+        "Docker: непривилегированный пользователь, секреты",
+        "Kubernetes: RBAC и NetworkPolicy базово",
+        "IAM: least privilege и роли",
+        "Trivy или kube-bench: найти misconfig"
+      ]},
+    { n:36, track:"appsec", block:"Специализация · AppSec", title:"DevSecOps", target:6, res:"SLSA · OPA",
+      items:[
+        "Пайплайн: где ставить гейты",
+        "Policy-as-code: идея и пример",
+        "Supply chain: SBOM и подпись артефактов",
+        "Секреты: хранение и ротация"
+      ]},
+
+    { n:37, track:"career", block:"Практика и карьера", title:"Лаборатория 2.0", target:8, res:"AD-стенд · детект-цикл",
+      items:[
+        "AD-стенд: контроллер домена, клиент, Kali",
+        "Полный цикл: атака, лог, правило",
+        "Собрать детект на свою же атаку",
+        "Описать стенд в README"
+      ]},
+    { n:38, track:"career", block:"Практика и карьера", title:"CTF и write-ups", target:8, res:"TryHackMe · HackTheBox",
+      items:[
+        "Три машины самостоятельно, без разборов",
+        "Два write-up с честным разбором ошибок",
+        "Опубликовать на GitHub",
+        "Начать вести заметки публично"
+      ]},
+    { n:39, track:"career", block:"Практика и карьера", title:"Сертификация", target:6, res:"Security+ · eJPT · BTL1",
+      items:[
+        "Выбрать одну под своё направление",
+        "План подготовки на 6 недель",
+        "Пробный экзамен или лабы",
+        "Записать дату в календарь"
+      ]},
+    { n:40, track:"career", block:"Практика и карьера", title:"Портфолио и собеседование", target:7, res:"GitHub · резюме",
+      items:[
+        "Резюме под конкретную вакансию, одна страница",
+        "GitHub: пять репозиториев с README",
+        "20 частых вопросов — ответить вслух",
+        "Mock-интервью: запись и разбор"
+      ]}  ];
 
   var CPS = [
     { id:"cp1", num:"01", week:3, title:"Фундамент", sub:"Конец 3-й недели",
@@ -662,7 +882,39 @@
         "Выбрал направление на следующие 3 месяца",
         "Понимаю, чего я ещё не знаю"
       ]}
-  ];
+  ,
+{ id:"cp5", num:"05", week:20, track:"blue", title:"Blue Team", sub:"Конец трека SOC",
+      items:[
+        "Настроен сбор логов и есть рабочий SIEM",
+        "Написано 3 своих правила Sigma",
+        "Проведён один hunt и оформлен отчёт",
+        "Разобран образ диска и память",
+        "Есть отчёт по инциденту"
+      ]},
+    { id:"cp6", num:"06", week:28, track:"red", title:"Red Team", sub:"Конец трека пентеста",
+      items:[
+        "Пройдены 3 машины самостоятельно",
+        "Есть путь к Domain Admin в лабе",
+        "Сделаны 15+ лаб PortSwigger",
+        "Написан отчёт с 5 находками и CVSS",
+        "Понимаю разницу между сканом и эксплуатацией"
+      ]},
+    { id:"cp7", num:"07", week:36, track:"appsec", title:"AppSec", sub:"Конец трека AppSec",
+      items:[
+        "Разобрал своё приложение по STRIDE",
+        "Закрыл 15+ лаб PortSwigger",
+        "Настроен SAST и SCA в CI",
+        "Проверил API на BOLA и JWT",
+        "Знаю, где ставить гейты в пайплайне"
+      ]},
+    { id:"cp8", num:"08", week:40, track:"career", title:"Карьера", sub:"Конец курса",
+      items:[
+        "Собрана лаборатория с полным циклом атака-детект",
+        "Пять репозиториев с README на GitHub",
+        "Выбрана сертификация и план подготовки",
+        "Резюме готово под конкретную вакансию",
+        "Прошёл mock-интервью"
+      ]}  ];
 
   var FINAL = [
     "Объяснить, что происходит при загрузке сайта, по шагам",
@@ -760,7 +1012,70 @@
     { id:"r49", w:12, type:"video", title:"Git and GitHub for Beginners — Crash Course", src:"YouTube · freeCodeCamp", meta:"1,5 часа", url:"https://www.youtube.com/watch?v=RGOj5yH7evk" },
     { id:"r50", w:12, type:"practice", title:"CyberDefenders — blue team челленджи", src:"CyberDefenders", meta:"разбор реальных артефактов", url:"https://cyberdefenders.org/" },
     { id:"r51", w:12, type:"practice", title:"GitHub — место для write-up'ов", src:"GitHub", meta:"портфолио", url:"https://github.com/" }
-  ];
+  ,
+// blue team
+    { id:"r52", w:13, type:"article", title:"Sysmon — документация и конфиги", src:"Microsoft Learn", meta:"сбор событий Windows", url:"https://learn.microsoft.com/en-us/sysinternals/downloads/sysmon" },
+    { id:"r53", w:13, type:"practice", title:"Sigma — правила детекта", src:"GitHub · SigmaHQ", meta:"готовые правила", url:"https://github.com/SigmaHQ/sigma" },
+    { id:"r54", w:14, type:"practice", title:"Malware-Traffic-Analysis", src:"malware-traffic-analysis.net", meta:"pcap с реальным вредоносом", url:"https://www.malware-traffic-analysis.net/" },
+    { id:"r55", w:14, type:"practice", title:"Готовые pcap для разбора", src:"Wireshark Wiki", meta:"C2 и туннели", url:"https://wiki.wireshark.org/SampleCaptures" },
+    { id:"r56", w:15, type:"practice", title:"Splunk Free", src:"Splunk", meta:"бесплатная версия для дома", url:"https://www.splunk.com/en_us/download/splunk-enterprise.html" },
+    { id:"r57", w:15, type:"practice", title:"Elastic Stack", src:"Elastic", meta:"альтернатива SIEM", url:"https://www.elastic.co/elastic-stack" },
+    { id:"r58", w:16, type:"practice", title:"Sigma — правила детекта", src:"GitHub · SigmaHQ", meta:"разбор структуры", url:"https://github.com/SigmaHQ/sigma" },
+    { id:"r59", w:16, type:"article", title:"MITRE ATT&CK — база техник", src:"MITRE", meta:"маппинг правил", url:"https://attack.mitre.org/" },
+    { id:"r60", w:17, type:"practice", title:"CyberDefenders — челленджи", src:"CyberDefenders", meta:"hunt и форензика", url:"https://cyberdefenders.org/" },
+    { id:"r61", w:17, type:"practice", title:"Blue Team Labs Online", src:"BTLO", meta:"задания с разбором", url:"https://blueteamlabs.online/" },
+    { id:"r62", w:18, type:"article", title:"NIST SP 800-61 — реагирование", src:"NIST", meta:"официальный гайд", url:"https://csrc.nist.gov/pubs/sp/800/61/r2/final" },
+    { id:"r63", w:18, type:"practice", title:"LetsDefend — тренировка SOC", src:"LetsDefend", meta:"инциденты в браузере", url:"https://letsdefend.io/" },
+    { id:"r64", w:19, type:"practice", title:"Autopsy — форензика диска", src:"Autopsy", meta:"бесплатный инструмент", url:"https://www.autopsy.com/" },
+    { id:"r65", w:19, type:"practice", title:"Volatility 3 — анализ памяти", src:"GitHub", meta:"плагины и команды", url:"https://github.com/volatilityfoundation/volatility3" },
+    { id:"r66", w:20, type:"practice", title:"any.run — песочница", src:"any.run", meta:"онлайн-анализ сэмплов", url:"https://any.run/" },
+    { id:"r67", w:20, type:"practice", title:"YARA — правила для малвари", src:"GitHub · VirusTotal", meta:"написание правил", url:"https://github.com/VirusTotal/yara" },
+
+    // red team
+    { id:"r68", w:21, type:"article", title:"PTES — стандарт пентеста", src:"pentest-standard.org", meta:"этапы и документы", url:"http://www.pentest-standard.org/" },
+    { id:"r69", w:21, type:"article", title:"OWASP WSTG — тестирование веба", src:"OWASP", meta:"чек-листы", url:"https://owasp.org/www-project-web-security-testing-guide/" },
+    { id:"r70", w:22, type:"practice", title:"crt.sh — сертификаты и поддомены", src:"crt.sh", meta:"пассивная разведка", url:"https://crt.sh/" },
+    { id:"r71", w:22, type:"practice", title:"Shodan — что видно снаружи", src:"Shodan", meta:"поиск по сервисам", url:"https://www.shodan.io/" },
+    { id:"r72", w:23, type:"article", title:"Nmap — книга и примеры", src:"nmap.org", meta:"флаги и NSE", url:"https://nmap.org/book/" },
+    { id:"r73", w:23, type:"practice", title:"HackTheBox — машины", src:"HackTheBox", meta:"практика на стендах", url:"https://www.hackthebox.com/" },
+    { id:"r74", w:24, type:"practice", title:"Web Security Academy", src:"PortSwigger", meta:"SQLi, XSS, access control", url:"https://portswigger.net/web-security" },
+    { id:"r75", w:24, type:"practice", title:"Burp Suite Community", src:"PortSwigger", meta:"перехват и Repeater", url:"https://portswigger.net/burp/communitydownload" },
+    { id:"r76", w:25, type:"practice", title:"BloodHound", src:"SpecterOps", meta:"граф AD-атак", url:"https://github.com/SpecterOps/BloodHound" },
+    { id:"r77", w:25, type:"practice", title:"impacket", src:"GitHub", meta:"скрипты для AD", url:"https://github.com/fortra/impacket" },
+    { id:"r78", w:26, type:"practice", title:"GTFOBins", src:"gtfobins.github.io", meta:"повышение привилегий в Linux", url:"https://gtfobins.github.io/" },
+    { id:"r79", w:26, type:"practice", title:"LOLBAS", src:"lolbas-project.github.io", meta:"живые бинари Windows", url:"https://lolbas-project.github.io/" },
+    { id:"r80", w:27, type:"practice", title:"PayloadsAllTheThings", src:"GitHub", meta:"шпаргалка по техникам", url:"https://github.com/swisskyrepo/PayloadsAllTheThings" },
+    { id:"r81", w:27, type:"practice", title:"HackTheBox — машины", src:"HackTheBox", meta:"пивот и постэксплуатация", url:"https://www.hackthebox.com/" },
+    { id:"r82", w:28, type:"practice", title:"CVSS-калькулятор", src:"FIRST", meta:"оценка находок", url:"https://www.first.org/cvss/calculator/3.1" },
+    { id:"r83", w:28, type:"article", title:"OWASP WSTG — отчётность", src:"OWASP", meta:"как писать выводы", url:"https://owasp.org/www-project-web-security-testing-guide/" },
+
+    // appsec
+    { id:"r84", w:29, type:"article", title:"OWASP ASVS", src:"OWASP", meta:"требования к приложению", url:"https://owasp.org/www-project-application-security-verification-standard/" },
+    { id:"r85", w:29, type:"article", title:"Threat modeling по STRIDE", src:"Microsoft Learn", meta:"методика и примеры", url:"https://learn.microsoft.com/en-us/azure/security/develop/threat-modeling-tool-threats" },
+    { id:"r86", w:30, type:"article", title:"SQL-инъекции: теория и лабы", src:"PortSwigger", meta:"практика", url:"https://portswigger.net/web-security/sql-injection" },
+    { id:"r87", w:30, type:"article", title:"XSS: теория и лабы", src:"PortSwigger", meta:"практика", url:"https://portswigger.net/web-security/cross-site-scripting" },
+    { id:"r88", w:31, type:"article", title:"OWASP Top 10", src:"OWASP", meta:"основные классы", url:"https://owasp.org/www-project-top-ten/" },
+    { id:"r89", w:31, type:"article", title:"SSRF: теория и лабы", src:"PortSwigger", meta:"практика", url:"https://portswigger.net/web-security/ssrf" },
+    { id:"r90", w:32, type:"practice", title:"Semgrep", src:"semgrep.dev", meta:"поиск паттернов в коде", url:"https://semgrep.dev/" },
+    { id:"r91", w:32, type:"article", title:"OWASP Code Review Guide", src:"OWASP", meta:"как смотреть код", url:"https://owasp.org/www-project-code-review-guide/" },
+    { id:"r92", w:33, type:"article", title:"GitHub Actions — документация", src:"GitHub", meta:"пайплайны", url:"https://docs.github.com/en/actions" },
+    { id:"r93", w:33, type:"practice", title:"Trivy — сканер уязвимостей", src:"GitHub · Aqua", meta:"образы и зависимости", url:"https://github.com/aquasecurity/trivy" },
+    { id:"r94", w:34, type:"article", title:"OWASP API Security Top 10", src:"OWASP", meta:"BOLA, auth, rate limit", url:"https://owasp.org/API-Security/editions/2023/en/0x11-t10/" },
+    { id:"r95", w:34, type:"practice", title:"JWT — разбор токенов", src:"jwt.io", meta:"дебаг и проверка", url:"https://jwt.io/" },
+    { id:"r96", w:35, type:"article", title:"Kubernetes — безопасность", src:"Kubernetes", meta:"RBAC и политики", url:"https://kubernetes.io/docs/concepts/security/" },
+    { id:"r97", w:35, type:"article", title:"Docker — безопасность", src:"Docker", meta:"образы и привилегии", url:"https://docs.docker.com/engine/security/" },
+    { id:"r98", w:36, type:"article", title:"SLSA — цепочка поставок", src:"slsa.dev", meta:"SBOM и подписи", url:"https://slsa.dev/" },
+    { id:"r99", w:36, type:"article", title:"OWASP DevSecOps Guideline", src:"OWASP", meta:"гейты в пайплайне", url:"https://owasp.org/www-project-devsecops-guideline/" },
+
+    // карьера
+    { id:"r100", w:37, type:"practice", title:"TryHackMe — AD-комнаты", src:"TryHackMe", meta:"стенд для практики", url:"https://tryhackme.com/" },
+    { id:"r101", w:37, type:"article", title:"MITRE ATT&CK — маппинг атак", src:"MITRE", meta:"атака → детект", url:"https://attack.mitre.org/" },
+    { id:"r102", w:38, type:"practice", title:"HackTheBox — машины", src:"HackTheBox", meta:"3 машины без разборов", url:"https://www.hackthebox.com/" },
+    { id:"r103", w:38, type:"practice", title:"picoCTF", src:"Carnegie Mellon", meta:"CTF для новичков", url:"https://picoctf.org/" },
+    { id:"r104", w:39, type:"article", title:"CompTIA Security+", src:"CompTIA", meta:"общая сертификация", url:"https://www.comptia.org/certifications/security" },
+    { id:"r105", w:39, type:"article", title:"eJPT — начальный пентест", src:"INE Security", meta:"практический экзамен", url:"https://security.ine.com/certifications/ejpt-certification/" },
+    { id:"r106", w:40, type:"article", title:"Карта тем по кибербезу", src:"roadmap.sh", meta:"что учить дальше", url:"https://roadmap.sh/cyber-security" },
+    { id:"r107", w:40, type:"practice", title:"GitHub — портфолио", src:"GitHub", meta:"репозитории с README", url:"https://github.com/" }  ];
 
   /* ---------- состояние ---------- */
   var KEY = "sec-tracker-v1";
@@ -775,7 +1090,7 @@
   function todayISO(){ return isoDate(new Date()); }
 
   function defaultState(){
-    return { start: todayISO(), hours:{}, done:{}, notes:{}, journal:[], days:[], read:{}, updatedAt: 0 };
+    return { start: todayISO(), hours:{}, done:{}, notes:{}, journal:[], days:[], read:{}, updatedAt: 0, track: "base" };
   }
 
   var state = load();
@@ -799,6 +1114,7 @@
     if(Array.isArray(o.journal)) s.journal = o.journal.filter(function(e){ return e && e.text; });
     if(Array.isArray(o.days)) s.days = o.days.filter(function(x){ return typeof x === "string"; });
     if(typeof o.updatedAt === "number") s.updatedAt = o.updatedAt;
+    if(typeof o.track === "string") s.track = o.track;
     return s;
   }
   function persist(){
@@ -864,11 +1180,18 @@
     FINAL.forEach(function(_,i){ if(state.done["f-"+(i+1)]) c++; });
     return c;
   }
-  function totals(){
+  function trackWeeks(id){ return PLAN.filter(function(w){ return w.track === id; }); }
+  function trackName(id){
+    for(var i = 0; i < TRACKS.length; i++){ if(TRACKS[i].id === id) return TRACKS[i].name; }
+    return id;
+  }
+  function trackCps(id){ return CPS.filter(function(c){ return (c.track || "base") === id; }); }
+  function trackHours(id){ var h = 0; trackWeeks(id).forEach(function(w){ h += w.target; }); return h; }
+
+  function totals(id){
     var t = 0, d = 0, h = 0;
-    PLAN.forEach(function(w){ t += w.items.length; d += weekDone(w); h += (state.hours["w"+w.n] || 0); });
-    CPS.forEach(function(cp){ t += cp.items.length; d += cpDone(cp); });
-    t += FINAL.length; d += finalDone();
+    trackWeeks(id).forEach(function(w){ t += w.items.length; d += weekDone(w); h += (state.hours["w"+w.n] || 0); });
+    trackCps(id).forEach(function(cp){ t += cp.items.length; d += cpDone(cp); });
     return { total:t, done:d, hours:h };
   }
 
@@ -897,7 +1220,7 @@
     return c;
   }
 
-  function weekHTML(w){
+  function weekHTML(w, num){
     var items = w.items.map(function(t,i){
       return '<li><button type="button" class="task" data-task="w'+w.n+'-'+(i+1)+'">'+
              '<span class="box"></span><span class="txt">'+esc(t)+'</span></button></li>';
@@ -911,11 +1234,11 @@
       : '';
     return '<article class="week" data-week="'+w.n+'" id="week-'+w.n+'">'+
       '<button type="button" class="week-head" data-toggle="'+w.n+'" aria-expanded="false" aria-controls="weekbody-'+w.n+'">'+
-        '<span class="wk-num">'+String(w.n).padStart(2,"0")+'</span>'+
+        '<span class="wk-num">'+String(num).padStart(2,"0")+'</span>'+
         '<span class="wk-main">'+
           '<span class="wk-title">'+esc(w.title)+'</span>'+
           '<span class="wk-meta"><span class="chip">'+esc(w.block)+'</span>'+
-            '<span>'+weekRange(w.n)+'</span><span>·</span>'+
+            (w.track === "base" ? '<span>'+weekRange(w.n)+'</span><span>·</span>' : '')+
             '<span data-whours="'+w.n+'">0 / '+w.target+' ч</span>'+
           '</span>'+
         '</span>'+
@@ -968,24 +1291,38 @@
 
   function renderPlan(){
     var list = document.getElementById("planList");
-    list.innerHTML = PLAN.map(weekHTML).join("");
-    // значения из состояния
-    PLAN.forEach(function(w){
+    var weeks = trackWeeks(state.track);
+    list.innerHTML = weeks.map(function(w, i){ return weekHTML(w, i + 1); }).join("");
+    weeks.forEach(function(w){
       var card = list.querySelector('[data-week="'+w.n+'"]');
+      if(!card) return;
       var ta = card.querySelector("[data-notes]");
-      ta.value = state.notes["w"+w.n] || "";
+      if(ta) ta.value = state.notes["w"+w.n] || "";
       var inp = card.querySelector(".h-input");
-      inp.value = state.hours["w"+w.n] || 0;
+      if(inp) inp.value = state.hours["w"+w.n] || 0;
     });
-    var cw = currentWeek();
-    var cur = list.querySelector('[data-week="'+cw+'"]');
-    if(cur) setOpen(cw, true);
+    if(state.track === "base"){
+      var cw = currentWeek();
+      var cur = list.querySelector('[data-week="'+cw+'"]');
+      if(cur) setOpen(cw, true);
+    }
   }
 
   function renderCP(){
     var list = document.getElementById("cpList");
-    list.innerHTML = CPS.map(cpHTML).join("");
+    list.innerHTML = trackCps(state.track).map(cpHTML).join("");
     document.getElementById("finalTasks").innerHTML = finalHTML();
+  }
+
+  function renderTracks(){
+    var box = document.getElementById("trackChips");
+    if(!box) return;
+    box.innerHTML = TRACKS.map(function(tr){
+      var t = totals(tr.id);
+      var p = t.total ? Math.round(t.done / t.total * 100) : 0;
+      return '<button type="button" class="tchip' + (state.track === tr.id ? " on" : "") + '" data-track="' + tr.id + '">' +
+        esc(tr.name) + ' <em>' + p + '%</em></button>';
+    }).join("");
   }
 
   var libFilter = "all";
@@ -1002,7 +1339,9 @@
     });
     var groups = [{ title:"Общее", sub:"пригодится на любой неделе", items: items.filter(function(r){ return r.w === 0; }) }];
     PLAN.forEach(function(w){
-      groups.push({ title:"Неделя " + w.n, sub: w.title, items: items.filter(function(r){ return r.w === w.n; }) });
+      var idx = trackWeeks(w.track).indexOf(w) + 1;
+      var tname = w.track === "base" ? "" : trackName(w.track) + " · ";
+      groups.push({ title: tname + "неделя " + idx, sub: w.title, items: items.filter(function(r){ return r.w === w.n; }) });
     });
     var shown = groups.filter(function(g){ return g.items.length; });
     if(!shown.length){
@@ -1048,7 +1387,7 @@
 
   /* ---------- обновление ---------- */
   function refresh(){
-    var t = totals();
+    var t = totals(state.track);
     var pct = t.total ? Math.round(t.done / t.total * 100) : 0;
 
     document.getElementById("heroBar").style.width = pct + "%";
@@ -1057,13 +1396,14 @@
     document.getElementById("ringFg").style.strokeDashoffset = String(C * (1 - pct/100));
 
     var cw = currentWeek();
-    document.getElementById("heroSub").textContent =
-      "Неделя " + cw + " из 12 · " + weekRange(cw);
+    document.getElementById("heroSub").textContent = state.track === "base"
+      ? ("Неделя " + cw + " из 12 · " + weekRange(cw))
+      : (trackName(state.track) + " · " + trackWeeks(state.track).length + " недель");
     document.getElementById("heroNote").textContent =
-      t.done + " из " + t.total + " задач · " + fmtHours(t.hours) + " из " + TOTAL_HOURS + " ч";
+      t.done + " из " + t.total + " задач · " + fmtHours(t.hours) + " из " + trackHours(state.track) + " ч";
     document.getElementById("topDates").textContent = weekRange(cw);
 
-    document.getElementById("stHours").textContent = fmtHours(t.hours) + " / " + TOTAL_HOURS + " ч";
+    document.getElementById("stHours").textContent = fmtHours(t.hours) + " / " + trackHours(state.track) + " ч";
     var wh = state.hours["w"+cw] || 0;
     var wt = PLAN[cw-1] ? PLAN[cw-1].target : 8;
     document.getElementById("stHoursSub").textContent = "на этой неделе — " + fmtHours(wh) + " из " + wt + " ч";
@@ -1106,8 +1446,9 @@
     // материалы
     document.getElementById("stRes").textContent = countRead(RES) + " / " + RES.length;
     refreshResCounts();
+    renderTracks();
 
-    document.getElementById("topDates").textContent = weekRange(cw);
+    document.getElementById("topDates").textContent = state.track === "base" ? weekRange(cw) : trackName(state.track);
   }
 
   function refreshResCounts(){
@@ -1239,6 +1580,16 @@
   /* ---------- события ---------- */
   document.addEventListener("click", function(e){
     var el;
+
+    var chip = e.target.closest ? e.target.closest("[data-track]") : null;
+    if(chip){
+      state.track = chip.getAttribute("data-track");
+      save();
+      renderPlan();
+      renderCP();
+      refresh();
+      return;
+    }
 
     el = e.target.closest ? e.target.closest("[data-res]") : null;
     if(el){ toggleRes(el.getAttribute("data-res")); return; }
