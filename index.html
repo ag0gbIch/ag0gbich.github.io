@@ -1,0 +1,1266 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="color-scheme" content="dark">
+<meta name="theme-color" content="#080c11">
+<meta name="description" content="12-недельный план входа в кибербезопасность: задачи, материалы, чек-поинты, журнал и прогресс.">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="SEC Tracker">
+<link rel="manifest" href="manifest.webmanifest">
+<link rel="apple-touch-icon" href="apple-touch-icon.png">
+<link rel="icon" type="image/png" href="icon-192.png">
+<title>SEC//TRACKER — 12 недель до базы в кибербезе</title>
+<style>
+  :root{
+    --bg:#080c11; --card:#101821; --card2:#0c141c; --card3:#0a1118;
+    --line:#1d2a36; --line2:#2b3c4d;
+    --txt:#e8eff6; --muted:#8b9dad; --dim:#5d7082;
+    --acc:#2ee6a8; --acc2:#4aa8ff; --warn:#ffb454; --danger:#ff6b6b;
+    --r:16px;
+  }
+  *{box-sizing:border-box}
+  html,body{height:100%}
+  body{
+    margin:0; background:var(--bg); color:var(--txt);
+    font:15px/1.55 -apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,"Helvetica Neue",Arial,sans-serif;
+    -webkit-font-smoothing:antialiased;
+    background-image:
+      radial-gradient(900px 500px at 15% -10%, rgba(46,230,168,.10), transparent 60%),
+      radial-gradient(800px 500px at 90% 0%, rgba(74,168,255,.09), transparent 60%);
+    background-repeat:no-repeat;
+  }
+  .mono{font-family:ui-monospace,SFMono-Regular,Menlo,Consolas,"Liberation Mono",monospace}
+  .wrap{max-width:1060px;margin:0 auto;padding:0 20px}
+
+  /* topbar */
+  .topbar{
+    position:sticky;top:0;z-index:20;
+    backdrop-filter:blur(14px);
+    background:rgba(8,12,17,.78);
+    border-bottom:1px solid var(--line);
+    padding-top:env(safe-area-inset-top);
+  }
+  .topbar .wrap{display:flex;align-items:center;justify-content:space-between;height:58px;gap:12px}
+  .brand{display:flex;align-items:baseline;gap:10px;min-width:0}
+  .brand b{font-family:ui-monospace,Menlo,Consolas,monospace;font-size:14px;letter-spacing:.14em;color:var(--acc)}
+  .brand span{font-size:12.5px;color:var(--dim);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+  .topchip{font-size:11.5px;color:var(--muted);border:1px solid var(--line);border-radius:999px;padding:4px 10px;white-space:nowrap}
+
+  main{padding:26px 0 90px}
+
+  /* hero */
+  .hero{
+    display:flex;align-items:center;justify-content:space-between;gap:28px;
+    background:linear-gradient(180deg,#111a24,#0d151d);
+    border:1px solid var(--line);border-radius:22px;padding:26px 28px;
+    box-shadow:0 20px 50px -30px rgba(0,0,0,.9);
+  }
+  .eyebrow{margin:0 0 6px;font-size:11.5px;letter-spacing:.16em;text-transform:uppercase;color:var(--acc)}
+  h1{margin:0 0 6px;font-size:clamp(21px,2.6vw,27px);line-height:1.2;letter-spacing:-.01em}
+  .hero-sub{margin:0 0 16px;color:var(--muted);font-size:14px}
+  .hero-note{margin:12px 0 0;color:var(--dim);font-size:12.5px}
+  .bar{height:7px;border-radius:999px;background:#1a2530;overflow:hidden;max-width:420px}
+  .bar i{display:block;height:100%;width:0;border-radius:999px;background:linear-gradient(90deg,var(--acc),#57d6ff);transition:width .45s ease}
+  .ring{flex:none;width:134px;height:134px}
+  .ring circle{fill:none;stroke-width:9}
+  .ring .bg{stroke:#1a2530}
+  .ring .fg{stroke:url(#g1);stroke-linecap:round;stroke-dasharray:326.73;stroke-dashoffset:326.73;transform:rotate(-90deg);transform-origin:60px 60px;transition:stroke-dashoffset .6s ease}
+  .ring-num{fill:var(--txt);font-size:24px;font-weight:700;font-family:ui-monospace,Menlo,monospace}
+  .ring-lbl{fill:var(--dim);font-size:10.5px;letter-spacing:.12em;text-transform:uppercase}
+
+  /* stats */
+  .stats{display:grid;grid-template-columns:repeat(4,1fr);gap:12px;margin-top:14px}
+  .stat{background:var(--card);border:1px solid var(--line);border-radius:var(--r);padding:14px 16px}
+  .stat-k{font-size:10.5px;letter-spacing:.13em;text-transform:uppercase;color:var(--dim)}
+  .stat-v{margin-top:5px;font-size:20px;font-weight:650;font-family:ui-monospace,Menlo,monospace;letter-spacing:-.02em}
+  .stat-s{margin-top:3px;font-size:12px;color:var(--muted)}
+
+  /* tabs */
+  .tabs{display:flex;gap:6px;margin:24px 0 16px;overflow-x:auto;padding-bottom:2px}
+  .tab{
+    appearance:none;background:transparent;border:1px solid transparent;color:var(--muted);
+    font:inherit;font-size:13.5px;padding:8px 14px;border-radius:10px;cursor:pointer;white-space:nowrap;
+    transition:color .15s,background .15s,border-color .15s;
+  }
+  .tab:hover{color:var(--txt);background:rgba(255,255,255,.03)}
+  .tab.active{color:var(--acc);background:rgba(46,230,168,.10);border-color:rgba(46,230,168,.25)}
+  .hidden{display:none !important}
+  .hint{margin:0 0 14px;color:var(--dim);font-size:12.5px}
+
+  /* week cards */
+  .week{background:var(--card);border:1px solid var(--line);border-radius:14px;margin-bottom:10px;overflow:hidden;transition:border-color .2s,box-shadow .2s}
+  .week.current{border-color:rgba(46,230,168,.32);box-shadow:0 0 0 1px rgba(46,230,168,.08),0 18px 40px -34px rgba(46,230,168,.5)}
+  .week.done-week{border-color:rgba(46,230,168,.16)}
+  .week-head{
+    width:100%;display:flex;align-items:center;gap:14px;text-align:left;
+    background:none;border:0;color:inherit;font:inherit;padding:15px 16px;cursor:pointer;
+  }
+  .week-head:hover{background:rgba(255,255,255,.025)}
+  .wk-num{flex:none;font-family:ui-monospace,Menlo,monospace;font-size:13px;color:var(--dim);letter-spacing:.08em;width:22px}
+  .week.current .wk-num{color:var(--acc)}
+  .wk-main{flex:1;min-width:0;display:flex;flex-direction:column;gap:3px}
+  .wk-title{font-size:14.5px;font-weight:600;letter-spacing:-.005em}
+  .wk-meta{display:flex;align-items:center;gap:7px;flex-wrap:wrap;font-size:12px;color:var(--dim)}
+  .chip{font-size:10.5px;letter-spacing:.05em;padding:2px 8px;border-radius:999px;border:1px solid rgba(74,168,255,.28);color:#8ec7ff;background:rgba(74,168,255,.08)}
+  .wk-side{flex:none;display:flex;align-items:center;gap:10px}
+  .wk-bar{width:86px;height:5px;border-radius:999px;background:#1a2530;overflow:hidden}
+  .wk-bar i{display:block;height:100%;width:0;background:var(--acc);border-radius:999px;transition:width .35s}
+  .wk-pct{font-family:ui-monospace,Menlo,monospace;font-size:12px;color:var(--muted);width:34px;text-align:right}
+  .chev{width:14px;height:14px;fill:none;stroke:var(--dim);stroke-width:1.8;stroke-linecap:round;stroke-linejoin:round;transition:transform .2s}
+  .week.open .chev{transform:rotate(180deg)}
+
+  .week-body{display:none;padding:0 16px 16px}
+  .week.open .week-body{display:block}
+
+  .tasks{list-style:none;margin:0;padding:0;display:flex;flex-direction:column;gap:1px}
+  .task{
+    width:100%;display:flex;align-items:flex-start;gap:11px;text-align:left;
+    background:none;border:0;color:inherit;font:inherit;font-size:14px;
+    padding:7px 8px;border-radius:9px;cursor:pointer;transition:background .15s;
+  }
+  .task:hover{background:rgba(255,255,255,.035)}
+  .box{
+    flex:none;width:18px;height:18px;margin-top:1px;border-radius:5px;
+    border:1.6px solid var(--line2);position:relative;transition:background .15s,border-color .15s;
+  }
+  .task.done .box{background:var(--acc);border-color:var(--acc)}
+  .task.done .box::after{
+    content:"";position:absolute;left:5px;top:2px;width:5px;height:9px;
+    border:2px solid #04130d;border-top:0;border-left:0;transform:rotate(45deg);
+  }
+  .task.done .txt{color:var(--dim);text-decoration:line-through}
+  .txt{flex:1}
+
+  .week-foot{border-top:1px dashed var(--line);margin-top:10px;padding-top:12px;display:flex;flex-direction:column;gap:10px}
+  .hrow{display:flex;align-items:center;gap:12px;flex-wrap:wrap}
+  .lbl{font-size:11px;letter-spacing:.12em;text-transform:uppercase;color:var(--dim)}
+  .stepper{display:inline-flex;align-items:center;gap:6px}
+  .stepper button{
+    width:28px;height:28px;border-radius:8px;border:1px solid var(--line2);background:var(--card2);
+    color:var(--txt);font:inherit;font-size:16px;line-height:1;cursor:pointer;transition:border-color .15s,color .15s;
+  }
+  .stepper button:hover{border-color:var(--acc);color:var(--acc)}
+  .h-input{
+    width:64px;height:28px;text-align:center;border-radius:8px;border:1px solid var(--line2);
+    background:var(--card3);color:var(--txt);font:inherit;font-family:ui-monospace,Menlo,monospace;font-size:13px;
+  }
+  .h-input:focus{outline:none;border-color:var(--acc)}
+  .h-target{font-size:12px;color:var(--dim)}
+  .notes{
+    width:100%;min-height:54px;resize:vertical;border-radius:10px;border:1px solid var(--line);
+    background:var(--card3);color:var(--txt);font:inherit;font-size:13px;padding:9px 11px;line-height:1.5;
+  }
+  .notes:focus{outline:none;border-color:rgba(46,230,168,.45)}
+  .notes::placeholder{color:#4c5e6f}
+  /* materials */
+  .mats{margin-top:14px;border-top:1px dashed var(--line);padding-top:12px}
+  .mats-head{display:flex;align-items:center;gap:8px;margin-bottom:9px}
+  .mats-title{font-size:10.5px;letter-spacing:.14em;text-transform:uppercase;color:var(--dim)}
+  .mats-count{font-size:11.5px;color:var(--muted);font-family:ui-monospace,Menlo,monospace}
+  .mat-list{list-style:none;margin:0;padding:0;display:flex;flex-direction:column;gap:6px}
+  .mat{display:flex;align-items:flex-start;gap:8px}
+  .mat-chk{
+    flex:none;width:22px;height:22px;margin-top:9px;border-radius:7px;border:1px solid var(--line2);background:var(--card2);
+    cursor:pointer;position:relative;transition:border-color .15s,background .15s;
+  }
+  .mat-chk:hover{border-color:var(--acc)}
+  .mat-chk::after{content:"";position:absolute;left:7px;top:6px;width:5px;height:9px;border:2px solid transparent;border-top:0;border-left:0;transform:rotate(45deg)}
+  .mat.read .mat-chk{background:rgba(46,230,168,.16);border-color:rgba(46,230,168,.5)}
+  .mat.read .mat-chk::after{border-color:var(--acc)}
+  .mat-link{
+    flex:1;min-width:0;display:flex;align-items:flex-start;gap:10px;text-decoration:none;color:inherit;
+    background:var(--card2);border:1px solid var(--line);border-radius:10px;padding:8px 10px;
+    transition:border-color .15s,background .15s;
+  }
+  .mat-link:hover{border-color:var(--line2);background:#13202c}
+  .badge{
+    flex:none;width:22px;height:22px;border-radius:6px;display:grid;place-items:center;
+    font-size:10.5px;line-height:1;margin-top:1px;
+  }
+  .t-video{background:rgba(255,107,107,.13);color:#ff8f8f;border:1px solid rgba(255,107,107,.28)}
+  .t-course{background:rgba(180,140,255,.13);color:#c9a8ff;border:1px solid rgba(180,140,255,.28)}
+  .t-article{background:rgba(74,168,255,.12);color:#8ec7ff;border:1px solid rgba(74,168,255,.28)}
+  .t-practice{background:rgba(46,230,168,.12);color:var(--acc);border:1px solid rgba(46,230,168,.28)}
+  .t-book{background:rgba(255,180,84,.12);color:#ffc579;border:1px solid rgba(255,180,84,.28)}
+  .mat-main{flex:1;min-width:0;display:flex;flex-direction:column;gap:2px}
+  .mat-title{font-size:13.5px;line-height:1.35;color:var(--txt)}
+  .mat.read .mat-title{color:var(--muted)}
+  .mat-meta{font-size:11.5px;color:var(--dim)}
+  .mat-go{flex:none;color:var(--dim);font-size:12px;margin-top:2px}
+  .mat-link:hover .mat-go{color:var(--acc)}
+
+  /* library */
+  .lib-head{display:flex;flex-direction:column;gap:10px;margin-bottom:16px}
+  .lib-search{
+    width:100%;padding:10px 12px;border-radius:10px;border:1px solid var(--line2);
+    background:var(--card3);color:var(--txt);font:inherit;font-size:14px;
+  }
+  .lib-search:focus{outline:none;border-color:var(--acc)}
+  .filters{display:flex;gap:6px;flex-wrap:wrap}
+  .filter{
+    appearance:none;font:inherit;font-size:12.5px;padding:6px 11px;border-radius:999px;cursor:pointer;
+    border:1px solid var(--line2);background:var(--card2);color:var(--muted);transition:all .15s;
+  }
+  .filter:hover{color:var(--txt)}
+  .filter.active{background:rgba(46,230,168,.12);border-color:rgba(46,230,168,.35);color:var(--acc)}
+  .lib-count{margin:0;font-size:12px;color:var(--dim)}
+  .lib-group{margin-bottom:18px}
+  .lib-group h4{
+    margin:0 0 8px;font-size:11.5px;letter-spacing:.09em;text-transform:uppercase;color:var(--dim);font-weight:600;
+  }
+  .lib-group h4 span{color:var(--muted);text-transform:none;letter-spacing:0;font-weight:400}
+
+  /* checkpoints */
+  .cp{background:var(--card);border:1px solid var(--line);border-left:2px solid rgba(46,230,168,.5);border-radius:14px;padding:16px;margin-bottom:12px}
+  .cp-head{display:flex;align-items:center;gap:12px;margin-bottom:8px}
+  .cp-badge{
+    flex:none;width:30px;height:30px;border-radius:9px;display:grid;place-items:center;
+    background:rgba(46,230,168,.10);border:1px solid rgba(46,230,168,.3);color:var(--acc);
+    font-family:ui-monospace,Menlo,monospace;font-size:12px;font-weight:700;
+  }
+  .cp-title{flex:1;min-width:0}
+  .cp-title h3{margin:0;font-size:14.5px;font-weight:600}
+  .cp-title p{margin:2px 0 0;font-size:12px;color:var(--dim)}
+  .cp-pct{font-family:ui-monospace,Menlo,monospace;font-size:12px;color:var(--muted)}
+  .final{border-left-color:rgba(74,168,255,.55);background:linear-gradient(180deg,#121c27,#0e161f)}
+  .final .cp-badge{background:rgba(74,168,255,.1);border-color:rgba(74,168,255,.32);color:#8ec7ff}
+
+  /* journal */
+  .card{background:var(--card);border:1px solid var(--line);border-radius:14px;padding:16px}
+  .card h3{margin:0 0 10px;font-size:14.5px;font-weight:600}
+  .jform{max-width:100%;margin-bottom:16px}
+  .jform textarea{
+    width:100%;min-height:84px;resize:vertical;border-radius:10px;border:1px solid var(--line);
+    background:var(--card3);color:var(--txt);font:inherit;font-size:14px;padding:11px 13px;
+  }
+  .jform textarea:focus{outline:none;border-color:rgba(46,230,168,.45)}
+  .jrow{display:flex;gap:10px;align-items:center;margin-top:10px;flex-wrap:wrap}
+  .btn{
+    appearance:none;font:inherit;font-size:13.5px;padding:9px 15px;border-radius:10px;cursor:pointer;
+    border:1px solid var(--line2);background:var(--card2);color:var(--txt);transition:border-color .15s,background .15s;
+  }
+  .btn:hover{border-color:var(--line2);background:#152130}
+  .btn.primary{background:var(--acc);border-color:var(--acc);color:#04130d;font-weight:650}
+  .btn.primary:hover{background:#4ff0bb}
+  .btn.danger{color:var(--danger);border-color:rgba(255,107,107,.35)}
+  .btn.danger:hover{background:rgba(255,107,107,.08)}
+  input[type=date]{
+    background:var(--card3);border:1px solid var(--line2);color:var(--txt);border-radius:10px;
+    padding:8px 10px;font:inherit;font-size:13px;
+  }
+  input[type=date]:focus{outline:none;border-color:var(--acc)}
+  .jentry{background:var(--card);border:1px solid var(--line);border-radius:12px;padding:12px 14px;margin-bottom:8px;display:flex;gap:12px;align-items:flex-start}
+  .j-body{flex:1;min-width:0}
+  .j-date{font-family:ui-monospace,Menlo,monospace;font-size:11.5px;color:var(--dim);letter-spacing:.04em}
+  .j-text{margin:4px 0 0;font-size:14px;white-space:pre-wrap;overflow-wrap:anywhere}
+  .j-del{flex:none;background:none;border:0;color:var(--dim);cursor:pointer;font-size:16px;line-height:1;padding:4px;border-radius:6px}
+  .j-del:hover{color:var(--danger);background:rgba(255,107,107,.08)}
+  .empty{color:var(--dim);font-size:13.5px;padding:10px 2px}
+
+  /* settings */
+  .srow{display:flex;gap:10px;flex-wrap:wrap;align-items:center}
+  .muted{color:var(--muted)}
+  .small{font-size:12.5px}
+  .sep{height:1px;background:var(--line);margin:16px 0}
+  .rules{margin:0;padding-left:18px;color:var(--muted);font-size:13.5px;line-height:1.7}
+  .rules b{color:var(--txt);font-weight:600}
+
+  footer{border-top:1px solid var(--line);padding:18px 0 calc(40px + env(safe-area-inset-bottom));color:var(--dim);font-size:12px}
+
+  #toast{
+    position:fixed;left:50%;bottom:calc(26px + env(safe-area-inset-bottom));transform:translate(-50%,16px);
+    background:#16212c;border:1px solid var(--line2);color:var(--txt);font-size:13px;
+    padding:10px 16px;border-radius:11px;opacity:0;pointer-events:none;transition:opacity .2s,transform .2s;z-index:50;
+    box-shadow:0 16px 40px -20px #000;
+  }
+  #toast.show{opacity:1;transform:translate(-50%,0)}
+
+  :focus-visible{outline:2px solid rgba(46,230,168,.6);outline-offset:2px}
+
+  @media (max-width:760px){
+    .hero{flex-direction:column;align-items:stretch;gap:16px;padding:20px}
+    .ring{width:96px;height:96px;align-self:flex-end;margin-top:0}
+    .stats{grid-template-columns:1fr 1fr}
+    .wk-bar{display:none}
+    .wk-side{gap:6px}
+    .brand span{display:none}
+    .week-head{padding:13px 12px;gap:10px}
+    .week-body{padding:0 12px 14px}
+    .topbar .wrap{height:52px}
+  }
+</style>
+</head>
+<body>
+
+<header class="topbar">
+  <div class="wrap">
+    <div class="brand">
+      <b>SEC//TRACKER</b>
+      <span>вход в кибербезопасность · 12 недель</span>
+    </div>
+    <div class="topchip mono" id="topDates">—</div>
+  </div>
+</header>
+
+<main class="wrap">
+  <section class="hero">
+    <div style="flex:1;min-width:0">
+      <p class="eyebrow">твой прогресс</p>
+      <h1>База собирается по неделям</h1>
+      <p class="hero-sub" id="heroSub">—</p>
+      <div class="bar"><i id="heroBar"></i></div>
+      <p class="hero-note" id="heroNote">—</p>
+    </div>
+    <svg class="ring" viewBox="0 0 120 120" aria-hidden="true">
+      <defs>
+        <linearGradient id="g1" x1="0" y1="0" x2="1" y2="1">
+          <stop offset="0%" stop-color="#2ee6a8"/>
+          <stop offset="100%" stop-color="#57d6ff"/>
+        </linearGradient>
+      </defs>
+      <circle class="bg" cx="60" cy="60" r="52"/>
+      <circle class="fg" id="ringFg" cx="60" cy="60" r="52"/>
+      <text class="ring-num" id="ringNum" x="60" y="62" text-anchor="middle">0%</text>
+      <text class="ring-lbl" x="60" y="80" text-anchor="middle">задач</text>
+    </svg>
+  </section>
+
+  <section class="stats">
+    <div class="stat">
+      <div class="stat-k">Часы</div>
+      <div class="stat-v" id="stHours">0 / 0 ч</div>
+      <div class="stat-s" id="stHoursSub">на этой неделе —</div>
+    </div>
+    <div class="stat">
+      <div class="stat-k">Серия</div>
+      <div class="stat-v" id="stStreak">0</div>
+      <div class="stat-s">дней подряд с активностью</div>
+    </div>
+    <div class="stat">
+      <div class="stat-k">Задачи</div>
+      <div class="stat-v" id="stTasks">0 / 0</div>
+      <div class="stat-s" id="stTasksSub">выполнено</div>
+    </div>
+    <div class="stat">
+      <div class="stat-k">Материалы</div>
+      <div class="stat-v" id="stRes">0 / 0</div>
+      <div class="stat-s">изучено</div>
+    </div>
+  </section>
+
+  <nav class="tabs" id="tabs">
+    <button class="tab active" data-tab="plan">План</button>
+    <button class="tab" data-tab="lib">Материалы</button>
+    <button class="tab" data-tab="cp">Чек-поинты</button>
+    <button class="tab" data-tab="journal">Журнал</button>
+    <button class="tab" data-tab="settings">Настройки</button>
+  </nav>
+
+  <section id="tab-plan" class="panel">
+    <p class="hint">Отмечай задачи и логируй часы — прогресс считается автоматически. Текущая неделя открыта сама. Материалы к неделе — внутри карточки.</p>
+    <div id="planList"></div>
+  </section>
+
+  <section id="tab-lib" class="panel hidden">
+    <div class="card lib-head">
+      <input id="libSearch" type="search" class="lib-search" placeholder="Поиск: tls, linux, sql, active directory...">
+      <div class="filters" id="libFilters">
+        <button class="filter active" data-filter="all">Всё</button>
+        <button class="filter" data-filter="video">Видео</button>
+        <button class="filter" data-filter="course">Курсы</button>
+        <button class="filter" data-filter="article">Статьи</button>
+        <button class="filter" data-filter="practice">Практика</button>
+        <button class="filter" data-filter="book">Книги</button>
+      </div>
+      <p class="lib-count" id="libCount"></p>
+    </div>
+    <div id="libList"></div>
+  </section>
+
+  <section id="tab-cp" class="panel hidden">
+    <p class="hint">Чек-поинты — это проверки «умею, а не помню». Не прошёл — неделя повтора, дальше не идти.</p>
+    <div id="cpList"></div>
+    <div class="cp final" id="finalCard">
+      <div class="cp-head">
+        <div class="cp-badge">✓</div>
+        <div class="cp-title">
+          <h3>Финал: «я вошёл в тему»</h3>
+          <p>Через 12 недель — уметь без гугла</p>
+        </div>
+        <span class="cp-pct" id="finalPct">0%</span>
+      </div>
+      <ul class="tasks" id="finalTasks"></ul>
+    </div>
+  </section>
+
+  <section id="tab-journal" class="panel hidden">
+    <div class="card jform">
+      <h3>Новая запись</h3>
+      <textarea id="jText" placeholder="Что делал, что не понял, к чему вернуться..."></textarea>
+      <div class="jrow">
+        <input type="date" id="jDate">
+        <button class="btn primary" id="jAdd">Добавить</button>
+        <span class="muted small" id="jCount"></span>
+      </div>
+    </div>
+    <div id="jList"></div>
+  </section>
+
+  <section id="tab-settings" class="panel hidden">
+    <div class="card">
+      <h3>Старт плана</h3>
+      <div class="srow">
+        <input type="date" id="startDate">
+        <span class="muted small">От этой даты считаются недели и «текущая неделя».</span>
+      </div>
+    </div>
+
+    <div class="sep"></div>
+
+    <div class="card">
+      <h3>Данные</h3>
+      <div class="srow">
+        <button class="btn" id="expBtn">Экспорт JSON</button>
+        <button class="btn" id="impBtn">Импорт</button>
+        <input type="file" id="impFile" accept=".json,application/json" hidden>
+        <button class="btn danger" id="resetBtn">Сбросить всё</button>
+      </div>
+      <p class="muted small" style="margin:12px 0 0">
+        Всё хранится локально в браузере (localStorage) — на сервер ничего не уходит.
+        Очистишь кэш — потеряешь данные, поэтому перед этим сделай экспорт.
+      </p>
+    </div>
+
+    <div class="sep"></div>
+
+    <div class="card">
+      <h3>Правила, без которых план не работает</h3>
+      <ul class="rules">
+        <li><b>70% практики / 30% теории.</b> Смотреть видео — не учёба.</li>
+        <li><b>Один курс за раз.</b> Не начинай второй материал по теме, пока не сделал лабу по первому.</li>
+        <li><b>Правило 30 минут.</b> Застрял — бейся полчаса, потом подсмотри и воспроизведи сам.</li>
+        <li><b>Пиши разбор.</b> 10–15 строк в журнал после каждой недели.</li>
+        <li><b>1 час в день</b> лучше, чем 8 часов в субботу.</li>
+      </ul>
+    </div>
+  </section>
+</main>
+
+<footer>
+  <div class="wrap">SEC//TRACKER · данные только в этом браузере · план рассчитан на 8–10 ч в неделю</div>
+</footer>
+
+<div id="toast" role="status" aria-live="polite"></div>
+
+<script>
+(function(){
+  "use strict";
+
+  /* ---------- данные плана ---------- */
+  var PLAN = [
+    { n:1, block:"Блок 1 · Сети + Linux", title:"Как данные ходят по сети", target:8, res:"Practical Networking · Professor Messer Network+ (1–2) · OverTheWire Bandit",
+      items:[
+        "Теория: OSI/TCP-IP на практике, IP-адресация, CIDR, порты",
+        "Практика: ipconfig, ip a, ping, traceroute, nslookup, curl -v",
+        "Wireshark: поймать свой ping и DNS-запрос, разобрать по слоям",
+        "Посчитать хосты в /24, /26, /28 руками, без калькулятора",
+        "Linux: Bandit 0–15, файловая система, find/grep, права rwx"
+      ]},
+    { n:2, block:"Блок 1 · Сети + Linux", title:"Протоколы, на которых всё стоит", target:8, res:"Practical Networking · TryHackMe: Pre Security",
+      items:[
+        "Теория: TCP vs UDP, рукопожатие, DNS, DHCP, ARP, HTTP",
+        "Wireshark: найти TCP handshake, DNS-запрос и HTTP GET",
+        "curl -v: разобрать все заголовки запроса и ответа",
+        "Эксперимент с hosts-файлом: сломать DNS и посмотреть результат",
+        "Linux: Bandit 15–20, chmod/chown, ps/top/kill, пайпы"
+      ]},
+    { n:3, block:"Блок 1 · Сети + Linux", title:"Шифрование в сети и периметр", target:9, res:"Practical Networking (TLS) · Wireshark · OWASP",
+      items:[
+        "Теория: TLS handshake, сертификаты и цепочка доверия, HTTPS",
+        "Теория: NAT, firewall, proxy, VPN, VLAN обзорно",
+        "Wireshark: TLS Client Hello, Server Hello, Certificate",
+        "Посмотреть сертификат сайта: кто выдал, кому, до когда",
+        "ufw: закрыть порт и проверить, что он закрылся",
+        "Проект: «Разбор моего трафика» — 1 страница выводов"
+      ]},
+    { n:4, block:"Блок 2 · Linux, Python, крипта", title:"Linux как администратор", target:8, res:"«The Linux Command Line» (Шоттс) · Bandit 20–25 · TryHackMe: Linux Fundamentals",
+      items:[
+        "Процессы и сигналы, systemd, cron, пользователи и группы",
+        "SSH по ключу, пакеты, логи /var/log и journalctl",
+        "Ubuntu Server: пользователь, SSH по ключу, запрет входа по паролю",
+        "Написать и запустить свой systemd-сервис",
+        "Найти в логах все неудачные попытки входа",
+        "Bandit 20–25 + главы «The Linux Command Line»"
+      ]},
+    { n:5, block:"Блок 2 · Linux, Python, крипта", title:"Python для безопасности", target:8, res:"«Automate the Boring Stuff», главы 1–9 · docs.python.org",
+      items:[
+        "Python: типы, списки/словари, файлы, функции, модули",
+        "Модули os, sys, re, subprocess, socket, requests",
+        "Скрипт №1: парсер auth.log — топ-10 IP по неудачным логинам",
+        "Скрипт №2: сканер портов на socket с таймаутом (только свои лабы)",
+        "Разобрать каждую строку своих скриптов и объяснить вслух"
+      ]},
+    { n:6, block:"Блок 2 · Linux, Python, крипта", title:"Криптография без математики", target:8, res:"Crypto101 · Cryptopals",
+      items:[
+        "Хеш vs шифрование vs кодирование (base64), KDF",
+        "Симметричное/асимметричное, подпись, PKI, nonce и IV",
+        "sha256sum vs bcrypt — почувствовать разницу в скорости",
+        "openssl: AES-шифрование файла, подпись и проверка подписи",
+        "Cryptopals Set 1, задачи 1–8 — руками, не копипастой",
+        "Crypto101: прочитать ключевые главы"
+      ]},
+    { n:7, block:"Блок 3 · Windows, AD, веб", title:"Windows", target:7, res:"Microsoft Learn · TryHackMe: Windows Fundamentals",
+      items:[
+        "Реестр, права NTFS, службы, учётные записи, UAC",
+        "Event Log: 4624, 4625, 4688, 4720 и другие ключевые ID",
+        "Event Viewer: входы за сутки, отличить успешный от неуспешного",
+        "Создать пользователя и ограничить права на папку через NTFS",
+        "PowerShell: Get-Process, Get-Service, Get-EventLog, Get-ChildItem"
+      ]},
+    { n:8, block:"Блок 3 · Windows, AD, веб", title:"Active Directory", target:8, res:"Microsoft Learn (AD DS) · TryHackMe: Active Directory Basics",
+      items:[
+        "Домен, контроллер домена, OU, GPO, LDAP",
+        "Kerberos обзорно: зачем билеты, DNS в домене",
+        "Поднять Windows Server и сделать контроллером домена",
+        "Создать 3 пользователей и OU, подключить Windows 11 к домену",
+        "Найти в логах DC события аутентификации"
+      ]},
+    { n:9, block:"Блок 3 · Windows, AD, веб", title:"Веб и данные", target:8, res:"PortSwigger Web Security Academy · OWASP Top 10",
+      items:[
+        "HTTP глубже: методы, статусы, cookies, сессии, CORS",
+        "SQL базово: SELECT/WHERE/JOIN/INSERT",
+        "OWASP Top 10 — обзорно, без зубрёжки",
+        "DevTools: разобрать запрос — заголовки, cookie, тело",
+        "OWASP Juice Shop в Docker: первые задания",
+        "5 SQL-запросов к тестовой БД (sqlite)"
+      ]},
+    { n:10, block:"Блок 4 · Направление и проект", title:"Выбери направление", target:6, res:"TryHackMe · HackTheBox · PortSwigger Academy",
+      items:[
+        "SOC / Blue Team: первый модуль TryHackMe SOC Level 1 или LetsDefend",
+        "Пентест: первый модуль Jr Penetration Tester или HTB Starting Point",
+        "AppSec: первые темы PortSwigger Academy",
+        "Записать выбранное направление и почему — в заметки недели"
+      ]},
+    { n:11, block:"Блок 4 · Направление и проект", title:"Своя лаборатория", target:8, res:"VirtualBox · Metasploitable2 · TryHackMe / HackTheBox",
+      items:[
+        "VirtualBox: сеть host-only, изоляция от интернета",
+        "Kali + Metasploitable2 (или Windows) в одной сети",
+        "Первая машина THM/HTB — сам, только подсказки",
+        "Зафиксировать шаги: recon → доступ → привилегии → находки"
+      ]},
+    { n:12, block:"Блок 4 · Направление и проект", title:"Проект и ревизия", target:8, res:"picoCTF · GitHub",
+      items:[
+        "Write-up №1: разбор пройденной машины/лабы",
+        "Write-up №2: разбор инцидента или уязвимости из новостей",
+        "picoCTF: 3–5 задач для новичков",
+        "Ревизия: что понял, что нет, куда дальше",
+        "Опубликовать разборы на GitHub"
+      ]}
+  ];
+
+  var CPS = [
+    { id:"cp1", num:"01", week:3, title:"Фундамент", sub:"Конец 3-й недели",
+      items:[
+        "Открываю pcap и объясняю TCP-сессию без подсказок",
+        "Считаю подсети в уме, понимаю шлюз и маску",
+        "Объясняю путь «URL → страница» по шагам",
+        "Bandit пройден до 20-го уровня",
+        "Написан первый разбор"
+      ]},
+    { id:"cp2", num:"02", week:6, title:"Linux + код + крипта", sub:"Конец 6-й недели",
+      items:[
+        "Скрипт-парсер работает, объясняю каждую строку",
+        "Различаю хеш / шифрование / кодирование на примерах",
+        "Понимаю, зачем TLS и что в нём проверяется",
+        "Настроил SSH по ключу и сервис в systemd",
+        "Cryptopals Set 1 добит"
+      ]},
+    { id:"cp3", num:"03", week:9, title:"Windows + веб", sub:"Конец 9-й недели",
+      items:[
+        "Объясняю упрощённо вход пользователя в домен",
+        "Нахожу в логах Windows успешный и неуспешный вход",
+        "Читаю HTTP-запрос: где сессия, где потенциальная дыра",
+        "Прошёл 10–15 начальных лаб PortSwigger",
+        "Понимаю, почему работает SQL-инъекция"
+      ]},
+    { id:"cp4", num:"04", week:12, title:"Выход", sub:"Конец 12-й недели",
+      items:[
+        "Собрал изолированный стенд и провёл на нём атаку/детект",
+        "Прошёл 3 машины самостоятельно (THM/HTB)",
+        "2 разбора лежат на GitHub",
+        "Выбрал направление на следующие 3 месяца",
+        "Понимаю, чего я ещё не знаю"
+      ]}
+  ];
+
+  var FINAL = [
+    "Объяснить, что происходит при загрузке сайта, по шагам",
+    "Назвать отличия TCP от UDP и привести примеры",
+    "Жить в Linux-терминале: права, процессы, логи, SSH",
+    "Написать скрипт на Python, который парсит или проверяет",
+    "Объяснить, как хранят пароли и почему",
+    "Найти в логах Windows подозрительный вход",
+    "Показать руками уязвимость в вебе и объяснить причину"
+  ];
+
+  /* ---------- обучающие материалы ---------- */
+  var TYPES = {
+    video:    { label:"видео",   icon:"▶", cls:"t-video" },
+    course:   { label:"курс",    icon:"◈", cls:"t-course" },
+    article:  { label:"статья",  icon:"▤", cls:"t-article" },
+    practice: { label:"практика",icon:"⚑", cls:"t-practice" },
+    book:     { label:"книга",   icon:"▣", cls:"t-book" }
+  };
+
+  var RES = [
+    // общее
+    { id:"r1", w:0, type:"course", title:"The Missing Semester — инструменты разработчика", src:"MIT", meta:"shell, git, отладка", url:"https://missing.csail.mit.edu/" },
+    { id:"r2", w:0, type:"course", title:"The Missing Semester — русский перевод", src:"MIT · перевод", meta:"то же на русском", url:"https://missing-semester-rus.github.io/" },
+    { id:"r3", w:0, type:"article", title:"Карта тем по кибербезопасности", src:"roadmap.sh", meta:"что учить и в каком порядке", url:"https://roadmap.sh/cyber-security" },
+    { id:"r4", w:0, type:"practice", title:"TryHackMe — интерактивные комнаты для новичков", src:"TryHackMe", meta:"браузер, без установки", url:"https://tryhackme.com/" },
+
+    // неделя 1
+    { id:"r5", w:1, type:"video", title:"How the Internet Works in 5 Minutes", src:"YouTube · Aaron Titus", meta:"5 минут", url:"https://www.youtube.com/watch?v=7_LPdttKXPc" },
+    { id:"r6", w:1, type:"course", title:"Networking Fundamentals — плейлист", src:"YouTube · Practical Networking", meta:"плейлист, ~4 часа", url:"https://www.youtube.com/playlist?list=PLIFyRwBY_4bRLmKfP1KnZA6rZbRHtxmXi" },
+    { id:"r7", w:1, type:"article", title:"The Truth about the OSI Model", src:"Practical Networking", meta:"статья", url:"https://www.practicalnetworking.net/stand-alone/the-truth-about-the-osi-model/" },
+    { id:"r8", w:1, type:"practice", title:"OverTheWire: Bandit", src:"OverTheWire", meta:"уровни 0–15", url:"https://overthewire.org/wargames/bandit/" },
+
+    // неделя 2
+    { id:"r9", w:2, type:"video", title:"Computer Networking Fundamentals Course", src:"YouTube · freeCodeCamp", meta:"полный курс", url:"https://www.youtube.com/watch?v=fQbBPa0ADvs" },
+    { id:"r10", w:2, type:"article", title:"Что происходит, когда вводишь google.com", src:"Practical Networking", meta:"разбор по шагам", url:"https://www.practicalnetworking.net/stand-alone/tell-me-everything-that-happens-when-you-type-google-com-into-a-web-browser/" },
+    { id:"r11", w:2, type:"practice", title:"Готовые pcap-файлы для разбора", src:"Wireshark Wiki", meta:"скачать и открыть в Wireshark", url:"https://wiki.wireshark.org/SampleCaptures" },
+    { id:"r12", w:2, type:"video", title:"Wireshark Full Course — от новичка до практики", src:"YouTube · Alpha Brains", meta:"4+ часа", url:"https://www.youtube.com/watch?v=n4muxtqLhN4" },
+
+    // неделя 3
+    { id:"r13", w:3, type:"video", title:"TLS Handshake — всё, что происходит при заходе на HTTPS", src:"YouTube · Practical Networking", meta:"видео", url:"https://www.youtube.com/watch?v=ZkL10eoG1PY" },
+    { id:"r14", w:3, type:"course", title:"CompTIA Network+ (N10-009) — видеокурс", src:"Professor Messer", meta:"бесплатно", url:"https://www.professormesser.com/network-plus/n10-009/n10-009-video/n10-009-training-course/" },
+    { id:"r15", w:3, type:"article", title:"RSA, Diffie-Hellman, DSA — столпы асимметричной криптографии", src:"Practical Networking", meta:"статья", url:"https://www.practicalnetworking.net/practical-tls/rsa-diffie-hellman-dsa-asymmetric-cryptography-explained/" },
+    { id:"r16", w:3, type:"course", title:"Practical TLS — серия материалов", src:"Practical Networking", meta:"статьи + видео", url:"https://www.practicalnetworking.net/series/" },
+
+    // неделя 4
+    { id:"r17", w:4, type:"video", title:"Linux for Ethical Hackers (Kali Linux)", src:"YouTube · freeCodeCamp", meta:"видеокурс", url:"https://www.youtube.com/watch?v=lZAoFs75_cs" },
+    { id:"r18", w:4, type:"book", title:"The Linux Command Line", src:"William Shotts", meta:"бесплатная книга", url:"https://linuxcommand.org/tlcl.php" },
+    { id:"r19", w:4, type:"practice", title:"Linux Journey — интерактивные уроки", src:"Linux Journey", meta:"по шагам, с заданиями", url:"https://linuxjourney.com/" },
+    { id:"r20", w:4, type:"practice", title:"OverTheWire: Bandit", src:"OverTheWire", meta:"уровни 20–25", url:"https://overthewire.org/wargames/bandit/" },
+
+    // неделя 5
+    { id:"r21", w:5, type:"video", title:"Learn Python — Full Course for Beginners", src:"YouTube · freeCodeCamp", meta:"4,5 часа", url:"https://www.youtube.com/watch?v=rfscVS0vtbw" },
+    { id:"r22", w:5, type:"book", title:"Automate the Boring Stuff with Python", src:"Al Sweigart", meta:"бесплатно онлайн", url:"https://automatetheboringstuff.com/" },
+    { id:"r23", w:5, type:"practice", title:"Exercism — Python track", src:"Exercism", meta:"задачи с проверкой", url:"https://exercism.org/tracks/python" },
+
+    // неделя 6
+    { id:"r24", w:6, type:"video", title:"Cryptography for Beginners — Full Python Course", src:"YouTube · freeCodeCamp", meta:"SHA-256, AES, RSA", url:"https://www.youtube.com/watch?v=kb_scuDUHls" },
+    { id:"r25", w:6, type:"book", title:"Crypto 101", src:"lvh", meta:"бесплатная книга", url:"https://www.crypto101.io/" },
+    { id:"r26", w:6, type:"practice", title:"Cryptopals — задачи по криптографии", src:"Cryptopals", meta:"Set 1, задачи 1–8", url:"https://cryptopals.com/" },
+    { id:"r27", w:6, type:"article", title:"Password Storage Cheat Sheet", src:"OWASP", meta:"как правильно хранить пароли", url:"https://cheatsheetseries.owasp.org/cheatsheets/Password_Storage_Cheat_Sheet.html" },
+
+    // неделя 7
+    { id:"r28", w:7, type:"article", title:"Документация PowerShell", src:"Microsoft Learn", meta:"справочник", url:"https://learn.microsoft.com/ru-ru/powershell/" },
+    { id:"r29", w:7, type:"practice", title:"Sysinternals Suite", src:"Microsoft Learn", meta:"Process Explorer, Autoruns и др.", url:"https://learn.microsoft.com/ru-ru/sysinternals/" },
+    { id:"r30", w:7, type:"article", title:"Windows security — документация", src:"Microsoft Learn", meta:"раздел про безопасность", url:"https://learn.microsoft.com/ru-ru/windows/security/" },
+    { id:"r31", w:7, type:"practice", title:"TryHackMe — комнаты по Windows", src:"TryHackMe", meta:"Windows Fundamentals", url:"https://tryhackme.com/" },
+
+    // неделя 8
+    { id:"r32", w:8, type:"article", title:"Active Directory Domain Services — обзор", src:"Microsoft Learn", meta:"официальная документация", url:"https://learn.microsoft.com/en-us/windows-server/identity/ad-ds/get-started/virtual-dc/active-directory-domain-services-overview" },
+    { id:"r33", w:8, type:"practice", title:"TryHackMe — Active Directory", src:"TryHackMe", meta:"комнаты AD Basics и др.", url:"https://tryhackme.com/" },
+    { id:"r34", w:8, type:"article", title:"MITRE ATT&CK — база техник атак", src:"MITRE", meta:"справочник, не для чтения целиком", url:"https://attack.mitre.org/" },
+
+    // неделя 9
+    { id:"r35", w:9, type:"practice", title:"Web Security Academy — лабы по вебу", src:"PortSwigger", meta:"бесплатно, 200+ лаб", url:"https://portswigger.net/web-security" },
+    { id:"r36", w:9, type:"video", title:"SQL Tutorial — Full Database Course", src:"YouTube · freeCodeCamp", meta:"4 часа", url:"https://www.youtube.com/watch?v=HXV3zeQKqGY" },
+    { id:"r37", w:9, type:"article", title:"OWASP Top 10", src:"OWASP", meta:"обзор главных классов уязвимостей", url:"https://owasp.org/www-project-top-ten/" },
+    { id:"r38", w:9, type:"practice", title:"OWASP Juice Shop", src:"OWASP", meta:"уязвимое приложение для тренировки", url:"https://owasp.org/www-project-juice-shop/" },
+    { id:"r39", w:9, type:"article", title:"SQL injection — теория и лабы", src:"PortSwigger", meta:"раздел академии", url:"https://portswigger.net/web-security/sql-injection" },
+
+    // неделя 10
+    { id:"r40", w:10, type:"video", title:"Full Ethical Hacking Course — введение в пентест", src:"YouTube · freeCodeCamp", meta:"обзор направления", url:"https://www.youtube.com/watch?v=3Kq1MIfTWCE" },
+    { id:"r41", w:10, type:"practice", title:"TryHackMe — учебные пути (SOC / PenTest)", src:"TryHackMe", meta:"Pre Security, SOC Level 1, Jr Penetration Tester", url:"https://tryhackme.com/" },
+    { id:"r42", w:10, type:"practice", title:"LetsDefend — тренировка SOC-аналитика", src:"LetsDefend", meta:"разбор инцидентов", url:"https://letsdefend.io/" },
+    { id:"r43", w:10, type:"practice", title:"Blue Team Labs Online", src:"BTLO", meta:"задания для blue team", url:"https://blueteamlabs.online/" },
+    { id:"r44", w:10, type:"article", title:"Roadmap: путь в кибербезопасность", src:"roadmap.sh", meta:"карта тем", url:"https://roadmap.sh/cyber-security" },
+
+    // неделя 11
+    { id:"r45", w:11, type:"practice", title:"HackTheBox — машины и Starting Point", src:"HackTheBox", meta:"практика на реальных стендах", url:"https://www.hackthebox.com/" },
+    { id:"r46", w:11, type:"article", title:"VirtualBox — руководство пользователя", src:"Oracle", meta:"настройка сети host-only", url:"https://www.virtualbox.org/manual/" },
+    { id:"r47", w:11, type:"video", title:"IppSec — разборы машин HTB", src:"YouTube · IppSec", meta:"смотреть после своей попытки", url:"https://www.youtube.com/@IppSec" },
+    { id:"r48", w:11, type:"practice", title:"picoCTF", src:"Carnegie Mellon", meta:"CTF для новичков", url:"https://picoctf.org/" },
+
+    // неделя 12
+    { id:"r49", w:12, type:"video", title:"Git and GitHub for Beginners — Crash Course", src:"YouTube · freeCodeCamp", meta:"1,5 часа", url:"https://www.youtube.com/watch?v=RGOj5yH7evk" },
+    { id:"r50", w:12, type:"practice", title:"CyberDefenders — blue team челленджи", src:"CyberDefenders", meta:"разбор реальных артефактов", url:"https://cyberdefenders.org/" },
+    { id:"r51", w:12, type:"practice", title:"GitHub — место для write-up'ов", src:"GitHub", meta:"портфолио", url:"https://github.com/" }
+  ];
+
+  /* ---------- состояние ---------- */
+  var KEY = "sec-tracker-v1";
+  var TOTAL_HOURS = PLAN.reduce(function(s,w){ return s + w.target; }, 0);
+
+  function isoDate(d){
+    var y = d.getFullYear();
+    var m = String(d.getMonth()+1).padStart(2,"0");
+    var dd = String(d.getDate()).padStart(2,"0");
+    return y+"-"+m+"-"+dd;
+  }
+  function todayISO(){ return isoDate(new Date()); }
+
+  function defaultState(){
+    return { start: todayISO(), hours:{}, done:{}, notes:{}, journal:[], days:[], read:{} };
+  }
+
+  var state = load();
+
+  function load(){
+    try{
+      var raw = localStorage.getItem(KEY);
+      if(!raw) return defaultState();
+      var o = JSON.parse(raw);
+      return normalize(o);
+    }catch(e){ return defaultState(); }
+  }
+  function normalize(o){
+    var s = defaultState();
+    if(!o || typeof o !== "object") return s;
+    if(typeof o.start === "string" && /^\d{4}-\d{2}-\d{2}$/.test(o.start)) s.start = o.start;
+    if(o.hours && typeof o.hours === "object") s.hours = o.hours;
+    if(o.done && typeof o.done === "object") s.done = o.done;
+    if(o.notes && typeof o.notes === "object") s.notes = o.notes;
+    if(o.read && typeof o.read === "object") s.read = o.read;
+    if(Array.isArray(o.journal)) s.journal = o.journal.filter(function(e){ return e && e.text; });
+    if(Array.isArray(o.days)) s.days = o.days.filter(function(x){ return typeof x === "string"; });
+    return s;
+  }
+  function save(){
+    try{ localStorage.setItem(KEY, JSON.stringify(state)); }
+    catch(e){ toast("Не удалось сохранить — браузер блокирует localStorage"); }
+  }
+
+  function markDay(){
+    var d = todayISO();
+    if(state.days.indexOf(d) === -1){ state.days.push(d); }
+  }
+
+  /* ---------- утилиты дат ---------- */
+  var M_SHORT = ["янв","фев","мар","апр","мая","июн","июл","авг","сен","окт","ноя","дек"];
+  function fmtShort(d){ return d.getDate()+" "+M_SHORT[d.getMonth()]; }
+  function parseISO(s){ var p = s.split("-"); return new Date(+p[0], +p[1]-1, +p[2]); }
+  function weekRange(n){
+    var st = parseISO(state.start);
+    if(isNaN(st.getTime())) return "—";
+    var a = new Date(st.getTime() + (n-1)*7*86400000);
+    var b = new Date(a.getTime() + 6*86400000);
+    return fmtShort(a)+" — "+fmtShort(b);
+  }
+  function currentWeek(){
+    var st = parseISO(state.start);
+    if(isNaN(st.getTime())) return 1;
+    var now = new Date(); now.setHours(0,0,0,0);
+    var diff = Math.floor((now.getTime() - st.getTime())/86400000);
+    if(diff < 0) return 1;
+    return Math.min(12, Math.floor(diff/7)+1);
+  }
+  function streak(){
+    var set = {};
+    state.days.forEach(function(d){ set[d] = true; });
+    var d = new Date(); d.setHours(0,0,0,0);
+    if(!set[isoDate(d)]){
+      d = new Date(d.getTime() - 86400000);
+      if(!set[isoDate(d)]) return 0;
+    }
+    var n = 0;
+    while(set[isoDate(d)]){ n++; d = new Date(d.getTime() - 86400000); }
+    return n;
+  }
+
+  /* ---------- прогресс ---------- */
+  function weekDone(w){
+    var c = 0;
+    for(var i=0;i<w.items.length;i++){ if(state.done["w"+w.n+"-"+(i+1)]) c++; }
+    return c;
+  }
+  function cpDone(cp){
+    var c = 0;
+    cp.items.forEach(function(_,i){ if(state.done[cp.id+"-"+(i+1)]) c++; });
+    return c;
+  }
+  function finalDone(){
+    var c = 0;
+    FINAL.forEach(function(_,i){ if(state.done["f-"+(i+1)]) c++; });
+    return c;
+  }
+  function totals(){
+    var t = 0, d = 0, h = 0;
+    PLAN.forEach(function(w){ t += w.items.length; d += weekDone(w); h += (state.hours["w"+w.n] || 0); });
+    CPS.forEach(function(cp){ t += cp.items.length; d += cpDone(cp); });
+    t += FINAL.length; d += finalDone();
+    return { total:t, done:d, hours:h };
+  }
+
+  /* ---------- рендер ---------- */
+  function esc(s){
+    return String(s).replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;").replace(/"/g,"&quot;");
+  }
+
+  function matHTML(r){
+    var t = TYPES[r.type] || TYPES.article;
+    var rd = !!state.read[r.id];
+    return '<li class="mat'+(rd ? ' read' : '')+'" data-mat="'+r.id+'">'+
+      '<button type="button" class="mat-chk" data-res="'+r.id+'" aria-pressed="'+(rd ? 'true' : 'false')+'" aria-label="Отметить изученным"></button>'+
+      '<a class="mat-link" href="'+esc(r.url)+'" target="_blank" rel="noopener noreferrer">'+
+        '<span class="badge '+t.cls+'" aria-hidden="true">'+t.icon+'</span>'+
+        '<span class="mat-main">'+
+          '<span class="mat-title">'+esc(r.title)+'</span>'+
+          '<span class="mat-meta">'+esc(r.src)+(r.meta ? ' · '+esc(r.meta) : '')+'</span>'+
+        '</span>'+
+        '<span class="mat-go" aria-hidden="true">↗</span>'+
+      '</a></li>';
+  }
+  function countRead(list){
+    var c = 0;
+    for(var i=0;i<list.length;i++){ if(state.read[list[i].id]) c++; }
+    return c;
+  }
+
+  function weekHTML(w){
+    var items = w.items.map(function(t,i){
+      return '<li><button type="button" class="task" data-task="w'+w.n+'-'+(i+1)+'">'+
+             '<span class="box"></span><span class="txt">'+esc(t)+'</span></button></li>';
+    }).join("");
+    var mats = RES.filter(function(r){ return r.w === w.n; });
+    var matsBlock = mats.length
+      ? '<div class="mats"><div class="mats-head">'+
+          '<span class="mats-title">Материалы</span>'+
+          '<span class="mats-count" data-matcount="'+w.n+'">'+countRead(mats)+' / '+mats.length+'</span>'+
+        '</div><ul class="mat-list">'+mats.map(matHTML).join('')+'</ul></div>'
+      : '';
+    return '<article class="week" data-week="'+w.n+'" id="week-'+w.n+'">'+
+      '<button type="button" class="week-head" data-toggle="'+w.n+'" aria-expanded="false" aria-controls="weekbody-'+w.n+'">'+
+        '<span class="wk-num">'+String(w.n).padStart(2,"0")+'</span>'+
+        '<span class="wk-main">'+
+          '<span class="wk-title">'+esc(w.title)+'</span>'+
+          '<span class="wk-meta"><span class="chip">'+esc(w.block)+'</span>'+
+            '<span>'+weekRange(w.n)+'</span><span>·</span>'+
+            '<span data-whours="'+w.n+'">0 / '+w.target+' ч</span>'+
+          '</span>'+
+        '</span>'+
+        '<span class="wk-side">'+
+          '<span class="wk-bar"><i></i></span>'+
+          '<span class="wk-pct">0%</span>'+
+          '<svg class="chev" viewBox="0 0 16 16" aria-hidden="true"><path d="M4 6l4 4 4-4"/></svg>'+
+        '</span>'+
+      '</button>'+
+      '<div class="week-body" id="weekbody-'+w.n+'">'+
+        '<ul class="tasks">'+items+'</ul>'+
+        matsBlock+
+        '<div class="week-foot">'+
+          '<div class="hrow">'+
+            '<span class="lbl">Часы</span>'+
+            '<div class="stepper">'+
+              '<button type="button" data-hours="'+w.n+'" data-delta="-0.5" aria-label="минус полчаса">−</button>'+
+              '<input class="h-input" type="number" min="0" max="60" step="0.5" value="0" data-week="'+w.n+'" aria-label="часы за неделю '+w.n+'">'+
+              '<button type="button" data-hours="'+w.n+'" data-delta="0.5" aria-label="плюс полчаса">+</button>'+
+              '<span class="h-target">из '+w.target+' ч</span>'+
+            '</div>'+
+          '</div>'+
+          '<textarea class="notes" rows="2" data-notes="'+w.n+'" placeholder="Заметки: что понял, что не понял, к чему вернуться"></textarea>'+
+        '</div>'+
+      '</div>'+
+    '</article>';
+  }
+
+  function cpHTML(cp){
+    var items = cp.items.map(function(t,i){
+      return '<li><button type="button" class="task" data-task="'+cp.id+'-'+(i+1)+'">'+
+             '<span class="box"></span><span class="txt">'+esc(t)+'</span></button></li>';
+    }).join("");
+    return '<article class="cp" data-cp="'+cp.id+'">'+
+      '<div class="cp-head">'+
+        '<div class="cp-badge">'+cp.num+'</div>'+
+        '<div class="cp-title"><h3>'+esc(cp.title)+'</h3><p>'+esc(cp.sub)+'</p></div>'+
+        '<span class="cp-pct">0%</span>'+
+      '</div>'+
+      '<ul class="tasks">'+items+'</ul>'+
+    '</article>';
+  }
+
+  function finalHTML(){
+    return FINAL.map(function(t,i){
+      return '<li><button type="button" class="task" data-task="f-'+(i+1)+'">'+
+             '<span class="box"></span><span class="txt">'+esc(t)+'</span></button></li>';
+    }).join("");
+  }
+
+  function renderPlan(){
+    var list = document.getElementById("planList");
+    list.innerHTML = PLAN.map(weekHTML).join("");
+    // значения из состояния
+    PLAN.forEach(function(w){
+      var card = list.querySelector('[data-week="'+w.n+'"]');
+      var ta = card.querySelector("[data-notes]");
+      ta.value = state.notes["w"+w.n] || "";
+      var inp = card.querySelector(".h-input");
+      inp.value = state.hours["w"+w.n] || 0;
+    });
+    var cw = currentWeek();
+    var cur = list.querySelector('[data-week="'+cw+'"]');
+    if(cur) setOpen(cw, true);
+  }
+
+  function renderCP(){
+    var list = document.getElementById("cpList");
+    list.innerHTML = CPS.map(cpHTML).join("");
+    document.getElementById("finalTasks").innerHTML = finalHTML();
+  }
+
+  var libFilter = "all";
+  var libQuery = "";
+
+  function renderLibrary(){
+    var list = document.getElementById("libList");
+    if(!list) return;
+    var q = libQuery.trim().toLowerCase();
+    var items = RES.filter(function(r){
+      if(libFilter !== "all" && r.type !== libFilter) return false;
+      if(!q) return true;
+      return (r.title + " " + r.src + " " + (r.meta || "")).toLowerCase().indexOf(q) !== -1;
+    });
+    var groups = [{ title:"Общее", sub:"пригодится на любой неделе", items: items.filter(function(r){ return r.w === 0; }) }];
+    PLAN.forEach(function(w){
+      groups.push({ title:"Неделя " + w.n, sub: w.title, items: items.filter(function(r){ return r.w === w.n; }) });
+    });
+    var shown = groups.filter(function(g){ return g.items.length; });
+    if(!shown.length){
+      list.innerHTML = '<p class="empty">Ничего не нашлось. Попробуй «tls», «linux», «sql» или сбрось фильтр.</p>';
+      return;
+    }
+    list.innerHTML = shown.map(function(g){
+      return '<div class="lib-group"><h4>' + esc(g.title) + ' <span>· ' + esc(g.sub) + '</span></h4>' +
+        '<ul class="mat-list">' + g.items.map(matHTML).join('') + '</ul></div>';
+    }).join("");
+  }
+
+  function renderJournal(){
+    var list = document.getElementById("jList");
+    if(!state.journal.length){
+      list.innerHTML = '<p class="empty">Пока пусто. Первая запись — после первой недели, 10–15 строк своими словами.</p>';
+    }else{
+      var items = state.journal.slice().sort(function(a,b){
+        var ka = (a.date||"") + " " + (a.ts||"");
+        var kb = (b.date||"") + " " + (b.ts||"");
+        return ka < kb ? 1 : ka > kb ? -1 : 0;
+      });
+      list.innerHTML = items.map(function(e){
+        var d = e.date ? parseISO(e.date) : new Date(e.ts || Date.now());
+        var ds = isNaN(d.getTime()) ? "" : d.getDate()+" "+M_SHORT[d.getMonth()]+" "+d.getFullYear();
+        return '<div class="jentry"><div class="j-body">'+
+          '<div class="j-date">'+ds+'</div>'+
+          '<p class="j-text">'+esc(e.text)+'</p></div>'+
+          '<button type="button" class="j-del" data-del="'+esc(e.id)+'" aria-label="удалить">×</button></div>';
+      }).join("");
+    }
+    document.getElementById("jCount").textContent = state.journal.length
+      ? state.journal.length + " " + plural(state.journal.length, "запись", "записи", "записей") : "";
+  }
+
+  function setOpen(n, open){
+    var card = document.querySelector('[data-week="'+n+'"]');
+    if(!card) return;
+    card.classList.toggle("open", !!open);
+    var head = card.querySelector(".week-head");
+    head.setAttribute("aria-expanded", open ? "true" : "false");
+  }
+
+  /* ---------- обновление ---------- */
+  function refresh(){
+    var t = totals();
+    var pct = t.total ? Math.round(t.done / t.total * 100) : 0;
+
+    document.getElementById("heroBar").style.width = pct + "%";
+    document.getElementById("ringNum").textContent = pct + "%";
+    var C = 326.73;
+    document.getElementById("ringFg").style.strokeDashoffset = String(C * (1 - pct/100));
+
+    var cw = currentWeek();
+    document.getElementById("heroSub").textContent =
+      "Неделя " + cw + " из 12 · " + weekRange(cw);
+    document.getElementById("heroNote").textContent =
+      t.done + " из " + t.total + " задач · " + fmtHours(t.hours) + " из " + TOTAL_HOURS + " ч";
+    document.getElementById("topDates").textContent = weekRange(cw);
+
+    document.getElementById("stHours").textContent = fmtHours(t.hours) + " / " + TOTAL_HOURS + " ч";
+    var wh = state.hours["w"+cw] || 0;
+    var wt = PLAN[cw-1] ? PLAN[cw-1].target : 8;
+    document.getElementById("stHoursSub").textContent = "на этой неделе — " + fmtHours(wh) + " из " + wt + " ч";
+
+    var s = streak();
+    document.getElementById("stStreak").textContent = s ? s + " " + plural(s, "день", "дня", "дней") : "0";
+    document.getElementById("stTasks").textContent = t.done + " / " + t.total;
+
+    // недели
+    PLAN.forEach(function(w){
+      var card = document.querySelector('[data-week="'+w.n+'"]');
+      if(!card) return;
+      var d = weekDone(w), tot = w.items.length;
+      var p = tot ? Math.round(d/tot*100) : 0;
+      card.classList.toggle("current", w.n === cw);
+      card.classList.toggle("done-week", p === 100);
+      card.querySelector(".wk-bar i").style.width = p + "%";
+      card.querySelector(".wk-pct").textContent = p + "%";
+      card.querySelector('[data-whours="'+w.n+'"]').textContent =
+        fmtHours(state.hours["w"+w.n] || 0) + " / " + w.target + " ч";
+      var inp = card.querySelector(".h-input");
+      if(inp && document.activeElement !== inp){ inp.value = state.hours["w"+w.n] || 0; }
+    });
+
+    // задачи
+    document.querySelectorAll("[data-task]").forEach(function(el){
+      el.classList.toggle("done", !!state.done[el.getAttribute("data-task")]);
+    });
+
+    // чек-поинты
+    CPS.forEach(function(cp){
+      var card = document.querySelector('[data-cp="'+cp.id+'"]');
+      if(!card) return;
+      var d = cpDone(cp), p = Math.round(d/cp.items.length*100);
+      card.querySelector(".cp-pct").textContent = p + "%";
+    });
+    var fd = finalDone();
+    document.getElementById("finalPct").textContent = Math.round(fd/FINAL.length*100) + "%";
+
+    // материалы
+    document.getElementById("stRes").textContent = countRead(RES) + " / " + RES.length;
+    refreshResCounts();
+
+    document.getElementById("topDates").textContent = weekRange(cw);
+  }
+
+  function refreshResCounts(){
+    PLAN.forEach(function(w){
+      var el = document.querySelector('[data-matcount="'+w.n+'"]');
+      if(!el) return;
+      var mats = RES.filter(function(r){ return r.w === w.n; });
+      el.textContent = countRead(mats) + " / " + mats.length;
+    });
+    var lc = document.getElementById("libCount");
+    if(lc){
+      var n = countRead(RES), left = RES.length - n;
+      lc.textContent = "Изучено " + n + " из " + RES.length +
+        (left ? " · осталось " + left + " " + plural(left, "материал", "материала", "материалов") : " · всё пройдено");
+    }
+  }
+
+  function fmtHours(v){
+    if(!v) return "0";
+    var s = (Math.round(v*10)/10).toString().replace(".", ",");
+    return s.replace(",0", "");
+  }
+
+  function plural(n, one, few, many){
+    var n10 = n % 10, n100 = n % 100;
+    if(n10 === 1 && n100 !== 11) return one;
+    if(n10 >= 2 && n10 <= 4 && (n100 < 10 || n100 >= 20)) return few;
+    return many;
+  }
+
+  /* ---------- действия ---------- */
+  function toggleTask(id){
+    if(state.done[id]) delete state.done[id]; else state.done[id] = true;
+    markDay(); save(); refresh();
+  }
+
+  function toggleRes(id){
+    if(state.read[id]) delete state.read[id]; else state.read[id] = true;
+    var on = !!state.read[id];
+    document.querySelectorAll('[data-mat="'+id+'"]').forEach(function(li){
+      li.classList.toggle("read", on);
+      var b = li.querySelector(".mat-chk");
+      if(b) b.setAttribute("aria-pressed", on ? "true" : "false");
+    });
+    markDay(); save(); refresh();
+  }
+
+  function setHours(n, v){
+    v = Math.max(0, Math.min(60, isNaN(v) ? 0 : v));
+    state.hours["w"+n] = v;
+    markDay(); save(); refresh();
+  }
+
+  function adjustHours(n, delta){
+    var cur = state.hours["w"+n] || 0;
+    setHours(n, Math.round((cur + delta)*2)/2);
+  }
+
+  function addJournal(){
+    var ta = document.getElementById("jText");
+    var txt = ta.value.trim();
+    if(!txt){ toast("Сначала напиши, что было"); ta.focus(); return; }
+    var d = document.getElementById("jDate").value || todayISO();
+    state.journal.unshift({
+      id: "j" + Date.now() + Math.random().toString(36).slice(2,7),
+      date: d, ts: new Date().toISOString(), text: txt
+    });
+    ta.value = "";
+    markDay(); save(); renderJournal(); refresh();
+    toast("Запись добавлена");
+  }
+
+  function deleteJournal(id){
+    state.journal = state.journal.filter(function(e){ return String(e.id) !== String(id); });
+    save(); renderJournal();
+  }
+
+  function exportJSON(){
+    var blob = new Blob([JSON.stringify(state, null, 2)], {type:"application/json"});
+    var a = document.createElement("a");
+    a.href = URL.createObjectURL(blob);
+    a.download = "sec-tracker-" + todayISO() + ".json";
+    document.body.appendChild(a); a.click(); a.remove();
+    setTimeout(function(){ URL.revokeObjectURL(a.href); }, 1000);
+    toast("Экспорт готов");
+  }
+
+  function importJSON(file){
+    var fr = new FileReader();
+    fr.onload = function(){
+      try{
+        var o = JSON.parse(String(fr.result));
+        state = normalize(o);
+        save(); renderAll();
+        toast("Импортировано");
+      }catch(e){ toast("Не получилось: файл не похож на экспорт трекера"); }
+    };
+    fr.readAsText(file);
+  }
+
+  function resetAll(){
+    if(!confirm("Сбросить весь прогресс, часы, заметки и журнал? Отменить будет нельзя.")) return;
+    state = defaultState();
+    save(); renderAll();
+    toast("Всё сброшено");
+  }
+
+  function renderAll(){
+    renderPlan();
+    renderCP();
+    renderLibrary();
+    renderJournal();
+    document.getElementById("startDate").value = state.start;
+    document.getElementById("jDate").value = todayISO();
+    refresh();
+  }
+
+  /* ---------- toast ---------- */
+  var toastTimer = null;
+  function toast(msg){
+    var el = document.getElementById("toast");
+    el.textContent = msg;
+    el.classList.add("show");
+    clearTimeout(toastTimer);
+    toastTimer = setTimeout(function(){ el.classList.remove("show"); }, 2200);
+  }
+
+  /* ---------- события ---------- */
+  document.addEventListener("click", function(e){
+    var el;
+
+    el = e.target.closest ? e.target.closest("[data-res]") : null;
+    if(el){ toggleRes(el.getAttribute("data-res")); return; }
+
+    el = e.target.closest ? e.target.closest("[data-task]") : null;
+    if(el){ toggleTask(el.getAttribute("data-task")); return; }
+
+    el = e.target.closest ? e.target.closest("[data-toggle]") : null;
+    if(el){
+      var n = el.getAttribute("data-toggle");
+      var card = el.closest(".week");
+      setOpen(n, !card.classList.contains("open"));
+      return;
+    }
+
+    el = e.target.closest ? e.target.closest("[data-hours]") : null;
+    if(el){ adjustHours(el.getAttribute("data-hours"), parseFloat(el.getAttribute("data-delta"))); return; }
+
+    el = e.target.closest ? e.target.closest("[data-del]") : null;
+    if(el){ deleteJournal(el.getAttribute("data-del")); return; }
+
+    el = e.target.closest ? e.target.closest(".tab") : null;
+    if(el){
+      var name = el.getAttribute("data-tab");
+      document.querySelectorAll(".tab").forEach(function(b){ b.classList.toggle("active", b === el); });
+      document.querySelectorAll(".panel").forEach(function(p){
+        p.classList.toggle("hidden", p.id !== "tab-" + name);
+      });
+      return;
+    }
+
+    el = e.target.closest ? e.target.closest("[data-filter]") : null;
+    if(el){
+      libFilter = el.getAttribute("data-filter");
+      document.querySelectorAll(".filter").forEach(function(b){ b.classList.toggle("active", b === el); });
+      renderLibrary(); refreshResCounts();
+      return;
+    }
+
+    if(e.target.id === "jAdd"){ addJournal(); return; }
+    if(e.target.id === "expBtn"){ exportJSON(); return; }
+    if(e.target.id === "impBtn"){ document.getElementById("impFile").click(); return; }
+    if(e.target.id === "resetBtn"){ resetAll(); return; }
+  });
+
+  document.addEventListener("input", function(e){
+    var el = e.target;
+    if(el.matches && el.matches("[data-notes]")){
+      state.notes["w" + el.getAttribute("data-notes")] = el.value;
+      save();
+    }
+    if(el.id === "libSearch"){
+      libQuery = el.value;
+      renderLibrary();
+      refreshResCounts();
+    }
+  });
+
+  document.addEventListener("change", function(e){
+    var el = e.target;
+    if(el.matches && el.matches(".h-input")){
+      var wn = el.getAttribute("data-week");
+      setHours(wn, parseFloat(el.value));
+      el.value = state.hours["w" + wn] || 0;
+      return;
+    }
+    if(el.id === "startDate" && el.value){
+      state.start = el.value;
+      save(); refresh();
+      toast("Старт плана: " + el.value);
+      return;
+    }
+    if(el.id === "impFile" && el.files && el.files[0]){
+      importJSON(el.files[0]);
+      el.value = "";
+      return;
+    }
+  });
+
+  document.addEventListener("keydown", function(e){
+    if(e.target && e.target.id === "jText" && (e.ctrlKey || e.metaKey) && e.key === "Enter"){
+      addJournal();
+    }
+  });
+
+  /* ---------- старт ---------- */
+  renderAll();
+
+  /* ---------- PWA: офлайн-кэш и установка на телефон ---------- */
+  if ("serviceWorker" in navigator &&
+      (location.protocol === "https:" || location.hostname === "localhost" || location.hostname === "127.0.0.1")) {
+    window.addEventListener("load", function(){
+      navigator.serviceWorker.register("sw.js").catch(function(){});
+    });
+  }
+})();
+</script>
+</body>
+</html>
