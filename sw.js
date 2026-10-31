@@ -1,8 +1,10 @@
-/* SEC//TRACKER — офлайн-кэш для PWA */
-var CACHE = "sec-tracker-v1";
+/* День и кибербез — офлайн-кэш */
+var CACHE = "den-i-cyber-v1";
 var ASSETS = [
   "./",
   "./index.html",
+  "./day.html",
+  "./cyber.html",
   "./manifest.webmanifest",
   "./icon-192.png",
   "./icon-512.png",
@@ -32,29 +34,34 @@ self.addEventListener("activate", function (event) {
   );
 });
 
+function fallbackFor(url) {
+  var path = new URL(url).pathname.split("/").pop();
+  if (!path) path = "index.html";
+  return caches.match("./" + path).then(function (hit) {
+    return hit || caches.match("./index.html");
+  });
+}
+
 self.addEventListener("fetch", function (event) {
   var request = event.request;
   if (request.method !== "GET") return;
 
-  // Страницы: сначала сеть (чтобы обновления прилетали), при офлайне — кэш
   if (request.mode === "navigate") {
     event.respondWith(
       fetch(request).then(function (response) {
         var copy = response.clone();
+        var path = new URL(request.url).pathname.split("/").pop() || "index.html";
         caches.open(CACHE).then(function (cache) {
-          cache.put("./index.html", copy);
+          cache.put("./" + path, copy);
         });
         return response;
       }).catch(function () {
-        return caches.match("./index.html").then(function (hit) {
-          return hit || caches.match("./");
-        });
+        return fallbackFor(request.url);
       })
     );
     return;
   }
 
-  // Остальное: из кэша, иначе из сети (и докладываем в кэш)
   event.respondWith(
     caches.match(request).then(function (hit) {
       if (hit) return hit;
