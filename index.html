@@ -269,6 +269,19 @@
   .rules{margin:0;padding-left:18px;color:var(--muted);font-size:13.5px;line-height:1.7}
   .rules b{color:var(--txt);font-weight:600}
 
+  /* sync */
+  .sync-lbl{display:block;font-size:11px;letter-spacing:.12em;text-transform:uppercase;color:var(--dim);margin:0 0 6px}
+  .sync-state{display:flex;align-items:center;gap:9px;font-size:14px;font-weight:600}
+  .dot2{width:10px;height:10px;border-radius:50%;background:var(--dim);flex:none;transition:background .2s}
+  .mini{
+    appearance:none;border:1px solid var(--line2);background:var(--card2);color:var(--muted);
+    font:inherit;font-size:11px;padding:2px 8px;border-radius:6px;cursor:pointer;margin-left:6px;
+  }
+  .mini:hover{color:var(--acc);border-color:var(--acc)}
+  code{font-family:ui-monospace,Menlo,monospace;font-size:12px;color:var(--txt);background:var(--card3);padding:2px 6px;border-radius:5px}
+  .link{color:var(--acc2)}
+  .link:hover{text-decoration:none}
+
   footer{border-top:1px solid var(--line);padding:18px 0 calc(40px + env(safe-area-inset-bottom));color:var(--dim);font-size:12px}
 
   #toast{
@@ -357,6 +370,7 @@
     <button class="tab" data-tab="lib">Материалы</button>
     <button class="tab" data-tab="cp">Чек-поинты</button>
     <button class="tab" data-tab="journal">Журнал</button>
+    <button class="tab" data-tab="sync">Синхронизация</button>
     <button class="tab" data-tab="settings">Настройки</button>
   </nav>
 
@@ -408,6 +422,59 @@
       </div>
     </div>
     <div id="jList"></div>
+  </section>
+
+  <section id="tab-sync" class="panel hidden">
+    <div class="card">
+      <h3>Синхронизация между устройствами</h3>
+      <p class="muted small" style="margin:0 0 14px">
+        Прогресс хранится в браузере, поэтому телефон и компьютер живут отдельно.
+        Здесь приложение сохраняет копию в <b>приватный GitHub Gist</b> — и оба устройства видят одно и то же.
+        Нужен только твой аккаунт, никаких сторонних сервисов.
+      </p>
+
+      <div id="syncSetup">
+        <label class="sync-lbl">Токен GitHub</label>
+        <input id="syncToken" type="password" class="lib-search" placeholder="ghp_..." autocomplete="off" spellcheck="false">
+        <p class="muted small" style="margin:8px 0 12px">
+          <a class="link" href="https://github.com/settings/tokens/new?scopes=gist&amp;description=SEC%20Tracker" target="_blank" rel="noopener">Создать токен</a>
+          — поставь галочку <b>gist</b>, срок любой. Токен останется только на этом устройстве.
+        </p>
+        <div class="srow">
+          <button class="btn primary" id="syncCreate">Создать хранилище</button>
+        </div>
+
+        <div class="sep"></div>
+
+        <label class="sync-lbl">Уже есть хранилище?</label>
+        <input id="syncCode" type="text" class="lib-search" placeholder="Код хранилища — показан на первом устройстве" autocomplete="off" spellcheck="false">
+        <div class="srow" style="margin-top:10px">
+          <button class="btn" id="syncJoin">Подключиться по коду</button>
+        </div>
+      </div>
+
+      <div id="syncActive" class="hidden">
+        <div class="sync-state">
+          <span class="dot2" id="syncDot"></span>
+          <span id="syncText">Готово</span>
+        </div>
+        <p class="muted small" id="syncMeta" style="margin:8px 0 0"></p>
+        <p class="muted small" style="margin:6px 0 0">
+          Код хранилища: <code id="syncCodeOut"></code>
+          <button class="mini" id="syncCopy" type="button">скопировать</button>
+        </p>
+        <div class="srow" style="margin-top:14px">
+          <button class="btn primary" id="syncNow">Синхронизировать</button>
+          <button class="btn" id="syncPush">Отправить на сервер</button>
+          <button class="btn" id="syncPull">Загрузить с сервера</button>
+          <button class="btn danger" id="syncOff">Отключить</button>
+        </div>
+        <p class="muted small" style="margin:12px 0 0">
+          Изменения уходят на сервер автоматически через несколько секунд, а при открытии приложение
+          подтягивает более свежую версию. Кто изменил последним — тот и прав.
+        </p>
+      </div>
+    </div>
   </section>
 
   <section id="tab-settings" class="panel hidden">
@@ -708,7 +775,7 @@
   function todayISO(){ return isoDate(new Date()); }
 
   function defaultState(){
-    return { start: todayISO(), hours:{}, done:{}, notes:{}, journal:[], days:[], read:{} };
+    return { start: todayISO(), hours:{}, done:{}, notes:{}, journal:[], days:[], read:{}, updatedAt: 0 };
   }
 
   var state = load();
@@ -731,11 +798,17 @@
     if(o.read && typeof o.read === "object") s.read = o.read;
     if(Array.isArray(o.journal)) s.journal = o.journal.filter(function(e){ return e && e.text; });
     if(Array.isArray(o.days)) s.days = o.days.filter(function(x){ return typeof x === "string"; });
+    if(typeof o.updatedAt === "number") s.updatedAt = o.updatedAt;
     return s;
   }
-  function save(){
+  function persist(){
     try{ localStorage.setItem(KEY, JSON.stringify(state)); }
     catch(e){ toast("Не удалось сохранить — браузер блокирует localStorage"); }
+  }
+  function save(){
+    state.updatedAt = Date.now();
+    persist();
+    if(!suppressPush) schedulePush();
   }
 
   function markDay(){
@@ -1149,6 +1222,7 @@
     renderJournal();
     document.getElementById("startDate").value = state.start;
     document.getElementById("jDate").value = todayISO();
+    renderSync();
     refresh();
   }
 
@@ -1204,6 +1278,18 @@
       return;
     }
 
+    if(e.target.id === "syncCreate"){ syncCreateStore(); return; }
+    if(e.target.id === "syncJoin"){ syncJoinStore(); return; }
+    if(e.target.id === "syncNow"){ syncSmart(); return; }
+    if(e.target.id === "syncPush"){ syncPush(false); return; }
+    if(e.target.id === "syncPull"){ syncPull(true); return; }
+    if(e.target.id === "syncOff"){ syncReset(); return; }
+    if(e.target.id === "syncCopy"){
+      try{ navigator.clipboard.writeText(syncCfg.gistId); toast("Код скопирован"); }
+      catch(err){ toast("Скопируй код вручную"); }
+      return;
+    }
+
     if(e.target.id === "jAdd"){ addJournal(); return; }
     if(e.target.id === "expBtn"){ exportJSON(); return; }
     if(e.target.id === "impBtn"){ document.getElementById("impFile").click(); return; }
@@ -1250,8 +1336,238 @@
     }
   });
 
+  /* ---------- синхронизация через GitHub Gist ---------- */
+  var SYNC_KEY = "sec-tracker-sync";
+  var GH_API = (typeof window.__SEC_TRACKER_GH_API__ === "string")
+    ? window.__SEC_TRACKER_GH_API__
+    : "https://api.github.com";
+  var syncCfg = {};
+  var syncBusy = false;
+  var suppressPush = false;
+  var pushTimer = null;
+
+  try { syncCfg = JSON.parse(localStorage.getItem(SYNC_KEY) || "{}") || {}; }
+  catch(e){ syncCfg = {}; }
+
+  function saveSyncCfg(){
+    try { localStorage.setItem(SYNC_KEY, JSON.stringify(syncCfg)); } catch(e){}
+  }
+  function syncReady(){ return !!(syncCfg.token && syncCfg.gistId); }
+
+  function ghFetch(path, opts){
+    opts = opts || {};
+    var headers = {
+      "Authorization": "token " + syncCfg.token,
+      "Accept": "application/vnd.github+json"
+    };
+    if(opts.body) headers["Content-Type"] = "application/json";
+    opts.headers = headers;
+    return fetch(GH_API + path, opts).then(function(r){
+      if(r.status === 401) throw new Error("Токен неверный или истёк (401)");
+      if(r.status === 403) throw new Error("GitHub не пустил: лимит запросов или нет доступа к gist (403)");
+      if(r.status === 404) throw new Error("Хранилище не найдено (404) — проверь код");
+      if(!r.ok) throw new Error("GitHub ответил " + r.status);
+      return r.json();
+    });
+  }
+
+  function syncPayload(){
+    return { v: 1, updatedAt: state.updatedAt || 0, state: state };
+  }
+
+  function setSyncStatus(text, kind){
+    var el = document.getElementById("syncText");
+    var dot = document.getElementById("syncDot");
+    if(el) el.textContent = text;
+    if(dot){
+      dot.style.background = kind === "ok" ? "#2ee6a8" : kind === "err" ? "#ff6b6b" : "#8b9dad";
+    }
+  }
+
+  function renderSync(){
+    var setup = document.getElementById("syncSetup");
+    var active = document.getElementById("syncActive");
+    if(!setup || !active) return;
+    setup.classList.toggle("hidden", syncReady());
+    active.classList.toggle("hidden", !syncReady());
+    if(syncReady()){
+      var out = document.getElementById("syncCodeOut");
+      if(out) out.textContent = syncCfg.gistId;
+      var meta = document.getElementById("syncMeta");
+      if(meta){
+        meta.textContent = syncCfg.lastSync
+          ? "Последняя синхронизация: " + new Date(syncCfg.lastSync).toLocaleString("ru-RU")
+          : "Синхронизация ещё не выполнялась";
+      }
+    }
+  }
+
+  function schedulePush(){
+    if(!syncReady()) return;
+    clearTimeout(pushTimer);
+    pushTimer = setTimeout(function(){ syncPush(true); }, 4000);
+  }
+
+  function syncCreateStore(){
+    var tok = (document.getElementById("syncToken").value || "").trim();
+    if(!tok){ toast("Вставь токен GitHub"); return; }
+    syncCfg = { token: tok };
+    saveSyncCfg();
+    setSyncStatus("Создаю хранилище…", "wait");
+    syncBusy = true;
+    state.updatedAt = Date.now();
+    persist();
+
+    var files = {};
+    files["sec-tracker.json"] = { content: JSON.stringify(syncPayload(), null, 2) };
+
+    ghFetch("/gists", {
+      method: "POST",
+      body: JSON.stringify({
+        description: "SEC//TRACKER — прогресс (синхронизация)",
+        public: false,
+        files: files
+      })
+    }).then(function(res){
+      syncBusy = false;
+      syncCfg.gistId = res.id;
+      syncCfg.lastSync = Date.now();
+      saveSyncCfg();
+      renderSync();
+      setSyncStatus("Хранилище создано", "ok");
+      toast("Готово: хранилище создано");
+    }).catch(function(err){
+      syncBusy = false;
+      setSyncStatus(err.message, "err");
+      toast(err.message);
+    });
+  }
+
+  function syncJoinStore(){
+    var tok = (document.getElementById("syncToken").value || "").trim();
+    var code = (document.getElementById("syncCode").value || "").trim();
+    if(!tok){ toast("Вставь токен GitHub"); return; }
+    if(!code){ toast("Вставь код хранилища"); return; }
+    syncCfg = { token: tok, gistId: code };
+    saveSyncCfg();
+    renderSync();
+    syncPull(true);
+  }
+
+  function syncRead(){
+    return ghFetch("/gists/" + encodeURIComponent(syncCfg.gistId)).then(function(g){
+      var file = g.files && g.files["sec-tracker.json"];
+      if(!file || !file.content) return null;
+      return JSON.parse(file.content);
+    });
+  }
+
+  function syncApplyRemote(remote){
+    suppressPush = true;
+    state = normalize(remote.state);
+    state.updatedAt = remote.updatedAt || Date.now();
+    persist();
+    suppressPush = false;
+    syncCfg.lastSync = Date.now();
+    saveSyncCfg();
+    renderAll();
+  }
+
+  function syncPush(silent){
+    if(!syncReady() || syncBusy) return;
+    syncBusy = true;
+    state.updatedAt = Date.now();
+    persist();
+
+    var files = {};
+    files["sec-tracker.json"] = { content: JSON.stringify(syncPayload(), null, 2) };
+
+    ghFetch("/gists/" + encodeURIComponent(syncCfg.gistId), {
+      method: "PATCH",
+      body: JSON.stringify({ files: files })
+    }).then(function(){
+      syncBusy = false;
+      syncCfg.lastSync = Date.now();
+      saveSyncCfg();
+      renderSync();
+      setSyncStatus("Отправлено на сервер", "ok");
+      if(!silent) toast("Отправлено на сервер");
+    }).catch(function(err){
+      syncBusy = false;
+      setSyncStatus(err.message, "err");
+      if(!silent) toast(err.message);
+    });
+  }
+
+  function syncPull(force){
+    if(!syncReady() || syncBusy) return;
+    syncBusy = true;
+    setSyncStatus("Читаю сервер…", "wait");
+    syncRead().then(function(remote){
+      syncBusy = false;
+      if(!remote || !remote.state){
+        setSyncStatus("На сервере пока пусто", "wait");
+        return;
+      }
+      var remoteTs = remote.updatedAt || 0;
+      if(force || remoteTs >= (state.updatedAt || 0)){
+        syncApplyRemote(remote);
+        setSyncStatus("Загружено с сервера", "ok");
+        toast("Прогресс загружен с сервера");
+      }else{
+        setSyncStatus("Локальная версия новее — отправь её", "wait");
+        toast("Локальная версия новее");
+      }
+    }).catch(function(err){
+      syncBusy = false;
+      setSyncStatus(err.message, "err");
+      toast(err.message);
+    });
+  }
+
+  function syncSmart(){
+    if(!syncReady() || syncBusy) return;
+    syncBusy = true;
+    setSyncStatus("Синхронизирую…", "wait");
+    syncRead().then(function(remote){
+      syncBusy = false;
+      var remoteTs = (remote && remote.updatedAt) || 0;
+      if(!remote || !remote.state){ syncPush(true); return; }
+      if(remoteTs > (state.updatedAt || 0)){
+        syncApplyRemote(remote);
+        setSyncStatus("Загружено с сервера", "ok");
+        toast("Подтянул свежую версию с сервера");
+      }else if((state.updatedAt || 0) > remoteTs){
+        syncPush(true);
+        toast("Отправлено на сервер");
+      }else{
+        syncCfg.lastSync = Date.now();
+        saveSyncCfg();
+        renderSync();
+        setSyncStatus("Всё совпадает", "ok");
+      }
+    }).catch(function(err){
+      syncBusy = false;
+      setSyncStatus(err.message, "err");
+      toast(err.message);
+    });
+  }
+
+  function syncReset(){
+    if(!confirm("Отключить синхронизацию на этом устройстве? Данные останутся локально, хранилище в GitHub не удалится.")) return;
+    syncCfg = {};
+    saveSyncCfg();
+    renderSync();
+    setSyncStatus("Отключено");
+    toast("Синхронизация отключена");
+  }
+
   /* ---------- старт ---------- */
   renderAll();
+
+  if(syncReady()){
+    syncSmart();
+  }
 
   /* ---------- PWA: офлайн-кэш и установка на телефон ---------- */
   if ("serviceWorker" in navigator &&
